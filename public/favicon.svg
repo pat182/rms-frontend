@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">RMS Restaurant Management System favicon</title>
+  <desc id="desc">White RMS lettering with a fork integrated into the R and a serving cloche above the S, on a Cornflower Blue rounded square.</desc>
+
+  <rect width="512" height="512" rx="94" fill="#6495ED"/>
+
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M142 180 C205 139 278 128 354 139" stroke-width="13"/>
+
+    <path d="M337 194 A51 51 0 0 1 439 194 Z" fill="#FFFFFF" stroke="none"/>
+    <path d="M354 188 A35 35 0 0 1 393 151" stroke="#6495ED" stroke-width="7"/>
+    <circle cx="388" cy="135" r="9" fill="#FFFFFF" stroke="none"/>
+    <path d="M329 201 H447" stroke-width="11"/>
+
+    <path d="M148 326 C184 386 288 395 377 352" stroke-width="15"/>
+  </g>
+
+  <g fill="#FFFFFF">
+
+    <path d="
+      M52 204
+      H145
+      C181 204 201 222 201 251
+      C201 275 186 291 161 297
+      L207 343
+      H166
+      L124 300
+      H91
+      V343
+      H52
+      Z
+
+      M91 232
+      V272
+      H139
+      C153 272 162 265 162 252
+      C162 239 153 232 139 232
+      Z
+    "/>
+
+    <rect x="66" y="222" width="5" height="27" rx="2.5" fill="#6495ED"/>
+    <rect x="76" y="222" width="5" height="27" rx="2.5" fill="#6495ED"/>
+    <rect x="86" y="222" width="5" height="27" rx="2.5" fill="#6495ED"/>
+
+    <path d="M66 245 Q66 259 76 264 Q86 259 86 245 Z" fill="#6495ED"/>
+    <path d="M73.5 258 H78.5 V292 H73.5 Z" fill="#6495ED"/>
+
+    <path d="
+      M210 343
+      V213
+      H244
+      L276 252
+      L308 213
+      H341
+      V343
+      H309
+      V263
+      L276 302
+      L242 263
+      V343
+      Z
+    "/>
+
+    <path d="
+      M444 228
+      C429 216 412 210 391 210
+      C359 210 341 227 341 250
+      C341 274 360 285 389 293
+      L403 297
+      C418 302 425 307 425 316
+      C425 327 415 334 398 334
+      C378 334 360 326 347 314
+      L329 338
+      C347 353 370 360 397 360
+      C432 360 453 341 453 314
+      C453 290 437 278 408 270
+      L391 265
+      C376 261 369 257 369 248
+      C369 239 377 233 391 233
+      C406 233 420 238 432 247
+      Z
+    "/>
+
+  </g>
+</svg>
