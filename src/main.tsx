@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route,Navigate } from 'react-router-dom'
 
 // @ts-ignore - Vite resolves CSS side-effect imports via its own type declarations.
 import './assets/css/index.css'
@@ -23,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
         <BrowserRouter>
             <Routes>
                 <Route element={<GuestRoutes />}>
+                    <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Login />} />
                 </Route>
                 
