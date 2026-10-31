@@ -32,6 +32,8 @@ export default function Login() {
         'user',
         JSON.stringify(result.token.user)
       )
+      localStorage.setItem('csrf_token', result.csrf);
+      
       navigate('/dashboard', { replace: true })
 
     }catch(err){

@@ -49,7 +49,7 @@ export async function refreshToken() {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-CSRF-Token': getCookie('csrf_token') ?? '',
+            'X-CSRF-Token':  localStorage.getItem('csrf_token') ?? ''
         },
     })
 }
