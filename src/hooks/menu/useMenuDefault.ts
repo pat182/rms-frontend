@@ -4,6 +4,8 @@ import { useToast } from "../../components/globals/toastContext.tsx";
 import { Menu } from '../../types/menu.ts';
 import { getMenus,updateMenuStatusApi } from '../../api/menu.ts';
 import { getApiErrorMessage } from '../../api/utils.ts';
+import { useRestaurant } from "../../components/globals/restaurantContext";
+
 
 export default function useMenuDefault() {
     const navigate = useNavigate()
@@ -11,6 +13,9 @@ export default function useMenuDefault() {
     const [menus, setMenus] =  useState<Menu[]>([])
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const { selectedRestaurantId } = useRestaurant();
+
     const handleView = (menu: Menu) => {
         console.log('View menu:', menu);
     };
@@ -51,6 +56,7 @@ export default function useMenuDefault() {
         }
     };
     useEffect(() => {
+        console.log(selectedRestaurantId)
         let cancelled = false;
 
         async function fetchMenus() {
@@ -88,7 +94,7 @@ export default function useMenuDefault() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [selectedRestaurantId]);
 
     return { 
         navigate,

@@ -27,6 +27,7 @@ export async function getMenus(
         headers: {
             'Accept': 'application/json',
             'Content-type': 'application/json',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
         },
     });
 }
@@ -37,43 +38,8 @@ export async function getMenuById(menuId: number): Promise<Response> {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
         },
-    });
-}
-
-export async function addMenuApi(
-    menuName: string,
-    is_active: boolean,
-): Promise<Response> {
-    return apiFetch(`${API_URL}/menus`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            menu_name: menuName,
-            is_active,
-        }),
-    });
-}
-
-export async function addMenuItemsApi(
-    menuId: number,
-    menuItems: MenuItem[],
-): Promise<Response> {
-    return apiFetch(`${API_URL}/menus/${menuId}/menu-items`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(
-            menuItems.map(({ id, ...item }) => ({
-                ...item,
-                menu_id: menuId,
-            })),
-        ),
     });
 }
 
@@ -85,7 +51,8 @@ export async function createCompleteMenuApi(
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-CSRF-Token': getCookie('csrf_token') ?? '',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
         },
         body: JSON.stringify(payload),
     });
@@ -100,6 +67,8 @@ export async function updateCompleteMenuApi(
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
         },
         body: JSON.stringify(payload),
     });
@@ -118,6 +87,8 @@ export async function uploadMenuItemImageApi(
             method: "POST",
             headers: {
                 'Accept': "application/json",
+                'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+                'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
             },
             body: formData,
         },
@@ -133,6 +104,8 @@ export async function updateMenuStatusApi(
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
         },
         body: JSON.stringify({ is_active: isActive }),
     });
@@ -150,6 +123,8 @@ export async function deleteItemImageApi(
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
+                'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+                'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
             },
             body: JSON.stringify({
                 image_url: imageUrl,
