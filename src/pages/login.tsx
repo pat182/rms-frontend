@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {login} from '../api/auth'
+import { LoaderCircle } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ export default function Login() {
     setError('')
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
    
     e.preventDefault()
     setError('')
@@ -32,6 +33,7 @@ export default function Login() {
         'user',
         JSON.stringify(result.token.user)
       )
+      localStorage.setItem('selectedRestaurantId', result.token.user.restaurants[0]);
       localStorage.setItem('csrf_token', result.csrf);
       
       navigate('/dashboard', { replace: true })
@@ -142,7 +144,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full cursor-pointer rounded-full bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-[0.99]"
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loading ? <><LoaderCircle size={18} className="animate-spin" />Logging in...</> : 'Login'}
               </button>
             </form>
 

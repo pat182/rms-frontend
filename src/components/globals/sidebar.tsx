@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -6,20 +7,32 @@ import {
     Settings,
     Menu,
     X,
+    Store,
+    ChevronUp,
+    LogOut 
 } from "lucide-react";
 import {type SideBarProps} from "../../types/global.ts";
 
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { name: "Manage Restaurant", icon:Store, path:"/restaurant"},
     { name: "Menu Management", icon: Utensils, path: "/menu" },
     { name: "Table Management", icon: Armchair, path: "/table" },
-    { name: "Settings", icon: Settings, path: "/settings" },
+
+    // { name: "Settings", icon: Settings, path: "/settings" },
 ];
+
+const settingsItem = [
+    {name: "Logout",icon:LogOut,path:"/"}
+]
 
 export default function SideBar({
     sidebarOpen,
     setSidebarOpen,
 }: SideBarProps) {
+
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    // const 
     return (
         <aside
             className={`fixed inset-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-slate-200 bg-white transition-all duration-300
@@ -79,11 +92,62 @@ export default function SideBar({
                                 }`
                             }
                         >
+                            
                             <Icon size={20} className="shrink-0" />
                             {sidebarOpen && <span>{item.name}</span>}
                         </NavLink>
                     );
                 })}
+            </nav>
+            <nav className="p-3">
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setSettingsOpen(!settingsOpen)}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                    >
+                        <Settings size={20} className="shrink-0" />
+
+                        {sidebarOpen && (
+                            <>
+                                <span className="flex-1 text-left">Settings</span>
+                                <ChevronUp
+                                    size={16}
+                                    className={`transition-transform ${
+                                        settingsOpen ? "rotate-180" : ""
+                                    }`}
+                                />
+                            </>
+                        )}
+
+                        
+                    </button>
+                    {settingsOpen && sidebarOpen && (
+                        <div className="absolute bottom-full left-0 z-50 mb-2 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                            {settingsItem.map((btmItem) => {
+                                const BtmIcon = btmItem.icon;
+
+                                return (
+                                    <NavLink
+                                        key={btmItem.path}
+                                        to={btmItem.path}
+                                        onClick={() => setSettingsOpen(false)}
+                                        className={({ isActive }) =>
+                                            `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                                                isActive
+                                                    ? "bg-[#6495ED] text-white"
+                                                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                            }`
+                                        }
+                                    >
+                                        <BtmIcon size={20} className="shrink-0" />
+                                        <span>{btmItem.name}</span>
+                                    </NavLink>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </nav>
         </aside>
     );

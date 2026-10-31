@@ -6,6 +6,7 @@ import  useMenuDefault  from '../../hooks/menu/useMenuDefault.ts';
 
 import {TableLoader} from '../../components/globals/tableLoader.tsx';
 
+
 export default function Menu() {
     const {
         navigate,
