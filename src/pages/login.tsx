@@ -33,7 +33,7 @@ export default function Login() {
         'user',
         JSON.stringify(result.token.user)
       )
-      localStorage.setItem('selectedRestaurantId', result.token.user.restaurants[0]);
+      localStorage.setItem('selectedRestaurantId', result.token.user.restaurants[0].id);
       localStorage.setItem('csrf_token', result.csrf);
       
       navigate('/dashboard', { replace: true })
