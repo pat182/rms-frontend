@@ -27,7 +27,6 @@ export default function TopBar({
             (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
         )?.restaurant_name ?? "Restaurant";
  
-    console.log(`TEST:${restaurantName}`)
 
     useEffect(() => {
         if (!dropdownOpen) return;

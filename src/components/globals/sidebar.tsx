@@ -35,7 +35,7 @@ export default function SideBar({
     // const 
     return (
         <aside
-            className={`fixed inset-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-slate-200 bg-white transition-all duration-300
+            className={`fixed inset-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-slate-200/80 bg-white shadow-sm transition-all duration-300
                 ${
                     sidebarOpen
                         ? "w-screen translate-x-0"
@@ -48,7 +48,7 @@ export default function SideBar({
                         : "md:w-16 md:translate-x-0"
                 }`}>
             {/* Sidebar Header */}
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-3">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200/80 px-3">
                 {sidebarOpen && (
                     <img
                         src="/rms-logo.png"
@@ -60,7 +60,7 @@ export default function SideBar({
                 <button
                     type="button"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="cursor-pointer rounded-lg bg-[#6495ED] p-2 text-white transition hover:bg-blue-500"
+                    className="cursor-pointer rounded-xl bg-[#6495ED] p-2 text-white shadow-sm shadow-blue-200 transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2"
                     aria-label={
                         sidebarOpen ? "Collapse sidebar" : "Expand sidebar"
                     }
@@ -70,7 +70,7 @@ export default function SideBar({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+            <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
 
@@ -85,10 +85,10 @@ export default function SideBar({
                             }}
                             title={!sidebarOpen ? item.name : undefined}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                                     isActive
-                                        ? "bg-[#6495ED] text-white"
-                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                    ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100"
+                                    : "text-slate-600 hover:translate-x-0.5 hover:bg-slate-50 hover:text-slate-900"
                                 }`
                             }
                         >
@@ -104,7 +104,7 @@ export default function SideBar({
                     <button
                         type="button"
                         onClick={() => setSettingsOpen(!settingsOpen)}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100"
                     >
                         <Settings size={20} className="shrink-0" />
 
@@ -123,7 +123,7 @@ export default function SideBar({
                         
                     </button>
                     {settingsOpen && sidebarOpen && (
-                        <div className="absolute bottom-full left-0 z-50 mb-2 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                        <div className="absolute bottom-full left-0 z-50 mb-2 w-full rounded-xl border border-slate-200/80 bg-white p-2 shadow-xl shadow-slate-900/10">
                             {settingsItem.map((btmItem) => {
                                 const BtmIcon = btmItem.icon;
 
@@ -135,8 +135,8 @@ export default function SideBar({
                                         className={({ isActive }) =>
                                             `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                                                 isActive
-                                                    ? "bg-[#6495ED] text-white"
-                                                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                                    ? "bg-blue-50 text-blue-700"
+                                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                             }`
                                         }
                                     >

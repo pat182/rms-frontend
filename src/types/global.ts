@@ -36,3 +36,18 @@ export type CollapsibleSectionProps = {
     defaultOpen?: boolean;
     className?: string;
 };
+
+export type GetQueryParams = {
+    page?: number;
+    page_size?: number;
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
+    search?: string;
+};
+
+export type Country = {
+    id: number;
+    country_name: string;
+    country_code: string;
+    phone_code: string;
+};

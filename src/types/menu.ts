@@ -86,14 +86,6 @@ export type CompleteMenuPayload = {
     removed_items: RemovedItemsPayload;
 };
 
-export type GetMenusQueryParams = {
-    page?: number;
-    page_size?: number;
-    sort_by?: string;
-    sort_order?: "asc" | "desc";
-    search?: string;
-};
-
 export type CategoryFieldsProps = {
     categories: Category[];
     onAdd: () => void;
