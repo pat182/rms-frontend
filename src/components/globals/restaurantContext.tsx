@@ -18,7 +18,10 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         ? user.restaurants
         : [];
 
+    
+
     const [selectedRestaurantId, setSelectedRestaurantIdState] =
+    
         useState<number | null>(() => {
             const savedId = Number(localStorage.getItem("selectedRestaurantId"));
 
