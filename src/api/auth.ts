@@ -43,6 +43,7 @@ export async function getCurrentUser(shouldRefresh = true) {
 }
 
 export async function refreshToken() {
+    console.log(  `LOCAL: ${localStorage.getItem('csrf_token')}`)
     return fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
         credentials: 'include',

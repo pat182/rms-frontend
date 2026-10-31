@@ -33,7 +33,7 @@ export default function Login() {
         JSON.stringify(result.token.user)
       )
       localStorage.setItem('csrf_token', result.csrf);
-      
+      console.log(localStorage.getItem('csrf_token'))
       navigate('/dashboard', { replace: true })
 
     }catch(err){
