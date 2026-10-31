@@ -27,14 +27,15 @@ export async function apiFetch(
     }
 
     // Get the newly generated CSRF token.
-    const csrfToken =  await refreshResponse.clone().json();
-
+    const resRes =  await refreshResponse.json();
+    const csrfToken = resRes.csrf_token
+    console.log(localStorage.getItem('csrf_token'))
     const headers = new Headers(options.headers);
 
     if (csrfToken) {
         headers.set('X-CSRF-Token', csrfToken);
     }
-    
+
     // Retry with updated CSRF token.
     return fetch(url, {
         ...options,
