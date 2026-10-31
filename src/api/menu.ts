@@ -2,7 +2,8 @@ import { getCookie } from './utils'
 import type { MenuItem } from '../types/menu';
 import { apiFetch } from './fetchWrapper';
 import { API_URL } from '../config';
-import {type GetMenusQueryParams, type CompleteMenuPayload} from '../types/menu.ts'
+import {type CompleteMenuPayload} from '../types/menu.ts'
+import {type GetQueryParams,} from '../types/global.ts'
 
 export async function getMenus(
     {
@@ -11,7 +12,7 @@ export async function getMenus(
         sort_by,
         sort_order,
         search,
-    }: GetMenusQueryParams = {},
+    }: GetQueryParams = {},
 ) {
     const params = new URLSearchParams({
         page: String(page),

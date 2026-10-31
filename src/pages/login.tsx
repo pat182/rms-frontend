@@ -3,13 +3,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {login} from '../api/auth'
 import { LoaderCircle } from "lucide-react";
+import { useRestaurant } from "../components/globals/restaurantContext";
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
+  const { setSelectedRestaurantId } = useRestaurant();
   const navigate = useNavigate()
 
   const handleFocus = () => {
@@ -35,7 +36,7 @@ export default function Login() {
       )
       localStorage.setItem('selectedRestaurantId', result.token.user.restaurants[0].id);
       localStorage.setItem('csrf_token', result.csrf);
-      
+      setSelectedRestaurantId(result.token.user.restaurants[0].id);
       navigate('/dashboard', { replace: true })
 
     }catch(err){

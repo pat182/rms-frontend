@@ -17,9 +17,7 @@ export default function TopBar({
         setSelectedRestaurantId,
     } = useRestaurant();
 
-    // const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(
-    //     () => restaurants[0]?.id ?? null,
-    // );
+    
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -29,7 +27,6 @@ export default function TopBar({
             (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
         )?.restaurant_name ?? "Restaurant";
  
-    
 
     useEffect(() => {
         if (!dropdownOpen) return;
