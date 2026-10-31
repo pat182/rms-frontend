@@ -56,7 +56,7 @@ export default function useMenuDefault() {
         }
     };
     useEffect(() => {
-        console.log(selectedRestaurantId)
+        // console.log(selectedRestaurantId)
         let cancelled = false;
 
         async function fetchMenus() {

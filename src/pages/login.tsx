@@ -142,9 +142,16 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full cursor-pointer rounded-full bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-[0.99]"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {loading ? <><LoaderCircle size={18} className="animate-spin" />Logging in...</> : 'Login'}
+                {loading ? (
+                  <>
+                    <LoaderCircle size={18} className="animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
 
