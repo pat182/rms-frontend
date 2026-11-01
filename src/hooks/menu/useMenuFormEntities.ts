@@ -110,6 +110,7 @@ export default function useMenuFormEntities({
                 id: createTempId(),
                 client_id: crypto.randomUUID(),
                 category_name: "",
+                sort_order: items.length,
                 menu_items: [],
                 subcategories: [],
             },
@@ -151,7 +152,12 @@ export default function useMenuFormEntities({
         }
 
         setCategories((items) =>
-            items.filter((category) => category.id !== categoryId)
+            items
+                .filter((category) => category.id !== categoryId)
+                .map((category, sort_order) => ({
+                    ...category,
+                    sort_order,
+                }))
         );
 
         setCategoryItemImages((images) => {
@@ -164,6 +170,25 @@ export default function useMenuFormEntities({
             const updated = { ...images };
             delete updated[categoryId];
             return updated;
+        });
+    };
+
+    const reorderCategories = (categoryIds: number[]) => {
+        setCategories((items) => {
+            const categoriesById = new Map(
+                items.map((category) => [category.id, category])
+            );
+            const orderedIds = [
+                ...categoryIds,
+                ...items
+                    .filter((category) => !categoryIds.includes(category.id))
+                    .map((category) => category.id),
+            ];
+
+            return orderedIds.flatMap((id, sort_order) => {
+                const category = categoriesById.get(id);
+                return category ? [{ ...category, sort_order }] : [];
+            });
         });
     };
 
@@ -274,6 +299,7 @@ export default function useMenuFormEntities({
                                   id: createTempId(),
                                   client_id: crypto.randomUUID(),
                                   category_name: "",
+                                  sort_order: category.subcategories.length,
                                   menu_items: [],
                               },
                           ],
@@ -330,10 +356,15 @@ export default function useMenuFormEntities({
                 category.id === categoryId
                     ? {
                           ...category,
-                          subcategories: category.subcategories.filter(
-                              (subcategory) =>
-                                  subcategory.id !== subcategoryId
-                          ),
+                          subcategories: category.subcategories
+                              .filter(
+                                  (subcategory) =>
+                                      subcategory.id !== subcategoryId
+                              )
+                              .map((subcategory, sort_order) => ({
+                                  ...subcategory,
+                                  sort_order,
+                              })),
                       }
                     : category
             )
@@ -348,6 +379,43 @@ export default function useMenuFormEntities({
             updated[categoryId] = categoryImages;
             return updated;
         });
+    };
+
+    const reorderSubcategories = (
+        categoryId: number,
+        subcategoryIds: number[]
+    ) => {
+        setCategories((items) =>
+            items.map((category) => {
+                if (category.id !== categoryId) return category;
+
+                const subcategoriesById = new Map(
+                    category.subcategories.map((subcategory) => [
+                        subcategory.id,
+                        subcategory,
+                    ])
+                );
+                const orderedIds = [
+                    ...subcategoryIds,
+                    ...category.subcategories
+                        .filter(
+                            (subcategory) =>
+                                !subcategoryIds.includes(subcategory.id)
+                        )
+                        .map((subcategory) => subcategory.id),
+                ];
+
+                return {
+                    ...category,
+                    subcategories: orderedIds.flatMap((id, sort_order) => {
+                        const subcategory = subcategoriesById.get(id);
+                        return subcategory
+                            ? [{ ...subcategory, sort_order }]
+                            : [];
+                    }),
+                };
+            })
+        );
     };
 
     // Subcategory menu items
@@ -444,9 +512,15 @@ export default function useMenuFormEntities({
                                       ? {
                                             ...subcategory,
                                             menu_items:
-                                                subcategory.menu_items.filter(
-                                                    (item) => item.id !== itemId
-                                                ),
+                                                subcategory.menu_items
+                                                    .filter(
+                                                        (item) =>
+                                                            item.id !== itemId
+                                                    )
+                                                    .map((item, sort_order) => ({
+                                                        ...item,
+                                                        sort_order,
+                                                    })),
                                         }
                                       : subcategory
                           ),
@@ -469,6 +543,56 @@ export default function useMenuFormEntities({
 
             return updated;
         });
+    };
+
+    const reorderSubcategoryMenuItems = (
+        categoryId: number,
+        subcategoryId: number,
+        itemIds: number[]
+    ) => {
+        setCategories((items) =>
+            items.map((category) =>
+                category.id === categoryId
+                    ? {
+                          ...category,
+                          subcategories: category.subcategories.map(
+                              (subcategory) => {
+                                  if (subcategory.id !== subcategoryId) {
+                                      return subcategory;
+                                  }
+
+                                  const itemsById = new Map(
+                                      subcategory.menu_items.map((item) => [
+                                          item.id,
+                                          item,
+                                      ])
+                                  );
+                                  const orderedIds = [
+                                      ...itemIds,
+                                      ...subcategory.menu_items
+                                          .filter(
+                                              (item) => !itemIds.includes(item.id)
+                                          )
+                                          .map((item) => item.id),
+                                  ];
+
+                                  return {
+                                      ...subcategory,
+                                      menu_items: orderedIds.flatMap(
+                                          (id, sort_order) => {
+                                              const item = itemsById.get(id);
+                                              return item
+                                                  ? [{ ...item, sort_order }]
+                                                  : [];
+                                          }
+                                      ),
+                                  };
+                              }
+                          ),
+                      }
+                    : category
+            )
+        );
     };
 
     const handleSubcategoryMenuItemImageSelect = (
@@ -495,7 +619,25 @@ export default function useMenuFormEntities({
             loadedCategories: Category[]
         ) => {
             setMenuItems(loadedMenuItems);
-            setCategories(loadedCategories);
+            setCategories(
+                loadedCategories.map((category, sort_order) => ({
+                    ...category,
+                    sort_order: category.sort_order ?? sort_order,
+                    subcategories: (category.subcategories ?? []).map(
+                        (subcategory, subcategorySortOrder) => ({
+                            ...subcategory,
+                            sort_order:
+                                subcategory.sort_order ?? subcategorySortOrder,
+                            menu_items: (subcategory.menu_items ?? []).map(
+                                (item, itemSortOrder) => ({
+                                    ...item,
+                                    sort_order: item.sort_order ?? itemSortOrder,
+                                })
+                            ),
+                        })
+                    ),
+                }))
+            );
             setRemovedItems(emptyRemovedItems());
             setMenuItemImages({});
             setCategoryItemImages({});
@@ -526,6 +668,7 @@ export default function useMenuFormEntities({
         addCategory,
         updateCategory,
         removeCategory,
+        reorderCategories,
         addCategoryMenuItem,
         updateCategoryMenuItem,
         removeCategoryMenuItem,
@@ -533,9 +676,11 @@ export default function useMenuFormEntities({
         addSubcategory,
         updateSubcategory,
         removeSubcategory,
+        reorderSubcategories,
         addSubcategoryMenuItem,
         updateSubcategoryMenuItem,
         removeSubcategoryMenuItem,
+        reorderSubcategoryMenuItems,
         handleSubcategoryMenuItemImageSelect,
     };
 }

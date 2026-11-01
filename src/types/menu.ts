@@ -31,6 +31,7 @@ export type Subcategory = {
     id: number;
     client_id: string;
     category_name: string;
+    sort_order: number;
     menu_items: MenuItem[];
 };
 
@@ -38,6 +39,7 @@ export type Category = {
     id: number;
     client_id: string;
     category_name: string;
+    sort_order: number;
     menu_items: MenuItem[];
     subcategories: Subcategory[];
 };
@@ -91,6 +93,7 @@ export type CategoryFieldsProps = {
     onAdd: () => void;
     onChange: (id: number, category_name: string) => void;
     onRemove: (id: number) => void;
+    onReorder: (categoryIds: number[]) => void;
 
     onAddMenuItem: (categoryId: number) => void;
 
@@ -116,6 +119,11 @@ export type CategoryFieldsProps = {
         subcategoryId: number
     ) => void;
 
+    onReorderSubcategories: (
+        categoryId: number,
+        subcategoryIds: number[]
+    ) => void;
+
     onAddSubcategoryMenuItem: (
         categoryId: number,
         subcategoryId: number
@@ -133,6 +141,12 @@ export type CategoryFieldsProps = {
         categoryId: number,
         subcategoryId: number,
         itemId: number
+    ) => void;
+
+    onReorderSubcategoryMenuItems: (
+        categoryId: number,
+        subcategoryId: number,
+        itemIds: number[]
     ) => void;
 
     onImageSelectMenuItem: (
@@ -177,6 +191,11 @@ export type MenuSubcategoriesProps = {
         subcategoryId: number
     ) => void;
 
+    onReorderSubcategories: (
+        categoryId: number,
+        subcategoryIds: number[]
+    ) => void;
+
     onAddSubcategoryMenuItem: (
         categoryId: number,
         subcategoryId: number
@@ -194,6 +213,12 @@ export type MenuSubcategoriesProps = {
         categoryId: number,
         subcategoryId: number,
         itemId: number
+    ) => void;
+
+    onReorderSubcategoryMenuItems: (
+        categoryId: number,
+        subcategoryId: number,
+        itemIds: number[]
     ) => void;
 
     onImageSelectSubcategoryMenuItem: (
@@ -271,4 +296,3 @@ export type RemovedItems = {
     subcategory_ids: number[];
     category_ids: number[];
 };
-

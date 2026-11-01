@@ -77,7 +77,11 @@ export function buildSubcategoryPayload(
         ...rest,
         ...(isNew && client_id ? { client_id } : {}),
         id: isNew ? null : id,
-        menu_items: subcategory.menu_items.map(buildMenuItemPayload),
+        menu_items: [...subcategory.menu_items]
+            .sort((first, second) => first.sort_order - second.sort_order)
+            .map((item, sort_order) =>
+                buildMenuItemPayload({ ...item, sort_order })
+            ),
     };
 }
 
@@ -92,7 +96,11 @@ export function buildCategoryPayload(
         ...(isNew && client_id ? { client_id } : {}),
         id: isNew ? null : id,
         menu_items: category.menu_items.map(buildMenuItemPayload),
-        subcategories: category.subcategories.map(buildSubcategoryPayload),
+        subcategories: [...category.subcategories]
+            .sort((first, second) => first.sort_order - second.sort_order)
+            .map((subcategory, sort_order) =>
+                buildSubcategoryPayload({ ...subcategory, sort_order })
+            ),
     };
 }
 
@@ -109,7 +117,11 @@ export function buildMenuPayload(
         description: description.trim() || null,
         is_active: isActive,
         menu_items: menuItems.map(buildMenuItemPayload),
-        categories: categories.map(buildCategoryPayload),
+        categories: [...categories]
+            .sort((first, second) => first.sort_order - second.sort_order)
+            .map((category, sort_order) =>
+                buildCategoryPayload({ ...category, sort_order })
+            ),
         removed_items: removedItems,
     };
 }

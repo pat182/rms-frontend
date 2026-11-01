@@ -65,6 +65,7 @@ export default function useMenuForm() {
         addCategory,
         updateCategory,
         removeCategory,
+        reorderCategories,
 
         addCategoryMenuItem,
         updateCategoryMenuItem,
@@ -74,10 +75,12 @@ export default function useMenuForm() {
         addSubcategory,
         updateSubcategory,
         removeSubcategory,
+        reorderSubcategories,
 
         addSubcategoryMenuItem,
         updateSubcategoryMenuItem,
         removeSubcategoryMenuItem,
+        reorderSubcategoryMenuItems,
         handleSubcategoryMenuItemImageSelect,
         resetLoadedEntities,
 
@@ -183,7 +186,29 @@ export default function useMenuForm() {
             };
 
             setMenuItems((savedMenu.menu_items ?? []) as MenuItem[]);
-            setCategories((savedMenu.categories ?? []) as Category[]);
+            setCategories(
+                ((savedMenu.categories ?? []) as Category[]).map(
+                    (category, sort_order) => ({
+                        ...category,
+                        sort_order: category.sort_order ?? sort_order,
+                        subcategories: (category.subcategories ?? []).map(
+                            (subcategory, subcategorySortOrder) => ({
+                                ...subcategory,
+                                sort_order:
+                                    subcategory.sort_order ??
+                                    subcategorySortOrder,
+                                menu_items: (subcategory.menu_items ?? []).map(
+                                    (item, itemSortOrder) => ({
+                                        ...item,
+                                        sort_order:
+                                            item.sort_order ?? itemSortOrder,
+                                    })
+                                ),
+                            })
+                        ),
+                    })
+                )
+            );
             setRemovedItems(emptyRemovedItems());
 
             const hasImages =
@@ -276,6 +301,7 @@ export default function useMenuForm() {
         addCategory,
         updateCategory,
         removeCategory,
+        reorderCategories,
 
         addCategoryMenuItem,
         updateCategoryMenuItem,
@@ -284,10 +310,11 @@ export default function useMenuForm() {
         addSubcategory,
         updateSubcategory,
         removeSubcategory,
-
+        reorderSubcategories,
         addSubcategoryMenuItem,
         updateSubcategoryMenuItem,
         removeSubcategoryMenuItem,
+        reorderSubcategoryMenuItems,
 
         handleMenuItemImageSelect,
         handleCategoryItemImageSelect,
