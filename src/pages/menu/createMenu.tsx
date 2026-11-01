@@ -23,6 +23,7 @@ export default function CreateMenu() {
         addCategory,
         updateCategory,
         removeCategory,
+        reorderCategories,
         addCategoryMenuItem,
         updateCategoryMenuItem,
         removeCategoryMenuItem,
@@ -30,9 +31,11 @@ export default function CreateMenu() {
         addSubcategory,
         updateSubcategory,
         removeSubcategory,
+        reorderSubcategories,
         addSubcategoryMenuItem,
         updateSubcategoryMenuItem,
         removeSubcategoryMenuItem,
+        reorderSubcategoryMenuItems,
         handleSubcategoryMenuItemImageSelect,
         handleDeleteExistingImage
     } = useMenuForm();
@@ -105,15 +108,18 @@ export default function CreateMenu() {
                         onAdd={addCategory}
                         onChange={updateCategory}
                         onRemove={removeCategory}
+                        onReorder={reorderCategories}
                         onAddMenuItem={addCategoryMenuItem}
                         onChangeMenuItem={updateCategoryMenuItem}
                         onRemoveMenuItem={removeCategoryMenuItem}
                         onAddSubcategory={addSubcategory}
                         onChangeSubcategory={updateSubcategory}
                         onRemoveSubcategory={removeSubcategory}
+                        onReorderSubcategories={reorderSubcategories}
                         onAddSubcategoryMenuItem={addSubcategoryMenuItem}
                         onChangeSubcategoryMenuItem={updateSubcategoryMenuItem}
                         onRemoveSubcategoryMenuItem={removeSubcategoryMenuItem}
+                        onReorderSubcategoryMenuItems={reorderSubcategoryMenuItems}
                         onImageSelectMenuItem={handleCategoryItemImageSelect}
                         onImageSelectSubcategoryMenuItem={handleSubcategoryMenuItemImageSelect}
                         onDeleteExistingImageMenuItem={(_categoryId, itemId, imageUrl) =>
