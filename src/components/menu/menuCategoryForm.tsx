@@ -33,11 +33,10 @@ export default function CategoryFields({
             </div>
 
             {categories.map((category) => (
-                <div key={category.id} className="rounded-xl bg-slate-50 p-4">
+                <div key={category.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <CollapsibleSection title={category.category_name || "New Category"}>
                         <div className="space-y-4">
-                            {/* Category Name */}
-                            <div className="flex items-end gap-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                                 <div className="flex flex-1 flex-col gap-1">
                                     <label
                                         htmlFor={`category-name-${category.id}`}
@@ -59,43 +58,43 @@ export default function CategoryFields({
                                             )
                                         }
                                         placeholder="Enter category name"
-                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]/20"
                                     />
                                 </div>
 
                                 <button
                                     type="button"
                                     onClick={() => onRemove(category.id)}
-                                    className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                                    className="cursor-pointer rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                                 >
                                     Remove
                                 </button>
                             </div>
 
-                            {/* Subcategories */}
-                            <MenuSubcategories
-                                categoryId={category.id}
-                                subcategories={category.subcategories}
-                                onAddSubcategory={onAddSubcategory}
-                                onChangeSubcategory={onChangeSubcategory}
-                                onRemoveSubcategory={onRemoveSubcategory}
-                                onAddSubcategoryMenuItem={onAddSubcategoryMenuItem}
-                                onChangeSubcategoryMenuItem={onChangeSubcategoryMenuItem}
-                                onRemoveSubcategoryMenuItem={onRemoveSubcategoryMenuItem}
-                                onImageSelectSubcategoryMenuItem={onImageSelectSubcategoryMenuItem}
-                                onDeleteExistingImageSubcategoryMenuItem={
-                                    onDeleteExistingImageSubcategoryMenuItem
-                                }
-                            />
+                            <div className="border-t border-slate-200 pt-4">
+                                <MenuSubcategories
+                                    categoryId={category.id}
+                                    subcategories={category.subcategories}
+                                    onAddSubcategory={onAddSubcategory}
+                                    onChangeSubcategory={onChangeSubcategory}
+                                    onRemoveSubcategory={onRemoveSubcategory}
+                                    onAddSubcategoryMenuItem={onAddSubcategoryMenuItem}
+                                    onChangeSubcategoryMenuItem={onChangeSubcategoryMenuItem}
+                                    onRemoveSubcategoryMenuItem={onRemoveSubcategoryMenuItem}
+                                    onImageSelectSubcategoryMenuItem={onImageSelectSubcategoryMenuItem}
+                                    onDeleteExistingImageSubcategoryMenuItem={
+                                        onDeleteExistingImageSubcategoryMenuItem
+                                    }
+                                />
+                            </div>
 
-                            {/* Category Menu Items */}
                             <div className="border-t border-slate-200 pt-3">
                                 <CollapsibleSection title={`Category Menu Items (${category.menu_items.length})`}>
                                     <div className="space-y-4">
                                         {category.menu_items.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className="rounded-lg bg-slate-50 p-3"
+                                                className="rounded-lg border border-slate-200 bg-slate-50 p-4"
                                             >
                                                 <MenuItemFormFields
                                                     item={item}
@@ -131,48 +130,28 @@ export default function CategoryFields({
                                                 />
                                             </div>
                                         ))}
-
-                                        {/* {category.menu_items.length === 0 && (
-                                            <p className="text-sm text-slate-500">
-                                                No items in this category yet.
-                                            </p>
-                                        )} */}
-
-                                        
                                     </div>
                                 </CollapsibleSection>
-                                <a href="#"
-                                            onClick={(event) => {
-                                                event.preventDefault();
-                                                onAddMenuItem(category.id);
-                                            }}
-                                            className="inline-block cursor-pointer text-sm font-medium text-[#6495ED]"
-                                        >
-                                            + Add category item
-                                </a>
+                                <button
+                                    type="button"
+                                    onClick={() => onAddMenuItem(category.id)}
+                                    className="inline-flex cursor-pointer items-center rounded-lg border border-dashed border-[#6495ED]/50 px-3 py-2 text-sm font-medium text-[#4f7ed4] transition hover:border-[#6495ED] hover:bg-blue-50"
+                                >
+                                    + Add category item
+                                </button>
                             </div>
-                            
                         </div>
                     </CollapsibleSection>
                 </div>
             ))}
 
-            {/* {categories.length === 0 && (
-                <p className="text-sm text-slate-500">
-                    No categories added yet.
-                </p>
-            )} */}
-
-            <a
-                href="#"
-                onClick={(event) => {
-                    event.preventDefault();
-                    onAdd();
-                }}
-                className="inline-block cursor-pointer text-sm font-medium text-[#6495ED]"
+            <button
+                type="button"
+                onClick={onAdd}
+                className="inline-flex cursor-pointer items-center rounded-lg border border-dashed border-[#6495ED]/50 px-3 py-2 text-sm font-medium text-[#4f7ed4] transition hover:border-[#6495ED] hover:bg-blue-50"
             >
                 + Add Category
-            </a>
+            </button>
         </div>
     );
 }

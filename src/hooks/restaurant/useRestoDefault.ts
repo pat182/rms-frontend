@@ -8,6 +8,7 @@ export default function useRestoDefault(){
     const [loading,setLoading] = useState(true)
     const [restaurants,setRestaurants] = useState<Restuarant[]>([])
     const [error,setError] = useState('')
+    const [expandedIds, setExpandedIds] = useState<number[]>([]);
 
     useEffect(()=>{
         let cancelled = false;
@@ -43,6 +44,9 @@ export default function useRestoDefault(){
         navigate,
         loading,
         restaurants,
-        error
+        error,
+        expandedIds,
+        setExpandedIds
+        
     };
 }

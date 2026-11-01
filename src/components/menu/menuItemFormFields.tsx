@@ -120,9 +120,8 @@ export default function MenuItemFormFields({
         onImageSelect(null);
     };
     return (
-        <div className="space-y-3">
-            {/* Item Name and Price */}
-            <div className="flex items-start gap-3">
+        <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_8rem]">
                 <div className="flex flex-1 flex-col gap-1">
                     <label
                         htmlFor={`${idPrefix}-name`}
@@ -139,7 +138,7 @@ export default function MenuItemFormFields({
                             onChange("item_name", event.target.value)
                         }
                         placeholder="Enter menu item name"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]/20"
                     />
                 </div>
 
@@ -166,12 +165,11 @@ export default function MenuItemFormFields({
                             )
                         }
                         placeholder="0.00"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]/20"
                     />
                 </div>
             </div>
 
-            {/* Description */}
             <div className="flex flex-col gap-1">
                 <label
                     htmlFor={`${idPrefix}-description`}
@@ -188,12 +186,11 @@ export default function MenuItemFormFields({
                     }
                     placeholder="Describe this menu item"
                     rows={2}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]/20"
                 />
             </div>
 
-            {/* Image Upload and Preview */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
                 <label
                     htmlFor={`${idPrefix}-image`}
                     className="text-sm font-medium text-slate-600"
@@ -206,7 +203,7 @@ export default function MenuItemFormFields({
                         <img
                             src={previewUrl ?? item.image_url ?? undefined}
                             alt={`${item.item_name || "Menu item"} preview`}
-                            className="h-40 w-40 rounded-lg border border-slate-200 object-cover"
+                            className="h-40 w-40 rounded-lg border border-slate-200 object-cover shadow-sm"
                         />
 
                         <button
@@ -240,7 +237,7 @@ export default function MenuItemFormFields({
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     onChange={handleImageChange}
-                    className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#6495ED] file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-blue-500"
+                    className="block w-full text-sm text-slate-600 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#6495ED] file:px-4 file:py-2 file:font-medium file:text-white file:transition hover:file:bg-blue-500"
                 />
 
                 <p className="text-xs text-slate-500">
@@ -248,9 +245,8 @@ export default function MenuItemFormFields({
                 </p>
             </div>
 
-            {/* Availability, Sort Order, Remove */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
+            <div className="flex flex-col gap-4 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-700">
                     <input
                         type="checkbox"
                         checked={item.is_available}
@@ -286,14 +282,14 @@ export default function MenuItemFormFields({
                                     : Number(event.target.value),
                             )
                         }
-                        className="w-20 rounded-lg border border-slate-300 px-2 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
+                        className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700 outline-none transition focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]/20"
                     />
                 </div>
 
                 <button
                     type="button"
                     onClick={onRemove}
-                    className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                    className="cursor-pointer rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                 >
                     Remove Item
                 </button>

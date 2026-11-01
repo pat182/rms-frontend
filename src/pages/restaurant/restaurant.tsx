@@ -8,9 +8,12 @@ export default function Restaurant(){
         navigate,
         loading,
         error,
-        restaurants
+        restaurants,
+        expandedIds,
+        setExpandedIds,
+
     } = useRestoDefault();
-    console.log(restaurants)
+    // console.log(restaurants)
     return (
         <main className="p-6">
             <div className="mb-8 flex flex-col gap-5 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -80,43 +83,73 @@ export default function Restaurant(){
                             </div>
                         </div>
                     ) : (
-                        restaurants.map((resto) => (
-                            <div key={resto.id} className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/60">
-                                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6495ED] via-blue-[#6495ED]  to-cyan-300" />
-                                <span
-                                    className={`absolute right-4 top-5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                                        resto.is_active ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                                    }`}
-                                >
-                                    {resto.is_active ? "Active" : "Inactive"}
-                                </span>
+                        restaurants.map((resto) =>  {
+                            const expanded = expandedIds.includes(resto.id);
+                            return (
+                                <div key={resto.id}
+                                    onClick={() => console.log("test")}
+                                    className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/60">
+                                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6495ED] via-blue-[#6495ED]  to-cyan-300" />
+                                    <span
+                                        className={`absolute right-4 top-5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                            resto.is_active ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                                        }`}
+                                    >
+                                        {resto.is_active ? "Active" : "Inactive"}
+                                    </span>
 
-                                <div className="mb-4 flex justify-center pt-2">
-                                    <div className="rounded-2xl bg-blue-50 p-3 transition duration-200 group-hover:scale-105 group-hover:bg-blue-100">
-                                        <Store className="h-7 w-7 text-[#6495ED]" />
+                                    <div className="mb-4 flex justify-center pt-2">
+                                        <div className="rounded-2xl bg-blue-50 p-3 transition duration-200 group-hover:scale-105 group-hover:bg-blue-100">
+                                            <Store className="h-7 w-7 text-[#6495ED]" />
+                                        </div>
+                                    </div>
+
+                                    <h2 className="mb-4 text-center text-lg font-semibold tracking-tight text-slate-600">
+                                        {resto.restaurant_name}
+                                    </h2>
+
+                                    <div className="space-y-3 border-t border-slate-100 pt-4 text-sm">
+                                        <div className="flex justify-between gap-4">
+                                            <span className="shrink-0 text-slate-400">Address</span>
+
+                                            <div className="flex flex-col items-end">
+                                                <span
+                                                    className={`text-right font-medium text-slate-600 break-words ${
+                                                        expanded ? "" : "line-clamp-3"
+                                                    }`}
+                                                >
+                                                    {resto.address}
+                                                </span>
+                                                {resto.address.length > 100 && (  
+                                                    <span
+                                                        tabIndex={0}
+                                                        onClick={() => {
+                                                            console.log(expanded)                         
+                                                            setExpandedIds(prev =>
+                                                                prev.includes(resto.id)
+                                                                    ? prev.filter(id => id !== resto.id)
+                                                                    : [...prev, resto.id]
+                                                            );
+                                                        }}
+                                                        className="mt-1 cursor-pointer text-[10px] font-medium text-blue-500 hover:text-blue-700"
+                                                    >
+                                                        {expanded ? "Show less" : "Show more"}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between gap-4">
+                                            <span className="shrink-0 text-slate-400">Email</span>
+                                            <span className="break-all text-right font-medium text-slate-600">{resto.email}</span>
+                                        </div>
+                                        <div className="flex justify-between gap-4">
+                                            <span className="shrink-0 text-slate-400">Contact Number</span>
+                                            <span className="text-right font-medium text-slate-600">{resto.country.phone_code}{resto.contact_number}</span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <h2 className="mb-4 text-center text-lg font-semibold tracking-tight text-slate-600">
-                                    {resto.restaurant_name}
-                                </h2>
-
-                                <div className="space-y-3 border-t border-slate-100 pt-4 text-sm">
-                                    <div className="flex justify-between gap-4">
-                                        <span className="shrink-0 text-slate-400">Address</span>
-                                        <span className="text-right font-medium text-slate-600">{resto.address}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-4">
-                                        <span className="shrink-0 text-slate-400">Email</span>
-                                        <span className="break-all text-right font-medium text-slate-600">{resto.email}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-4">
-                                        <span className="shrink-0 text-slate-400">Contact Number</span>
-                                        <span className="text-right font-medium text-slate-600">{resto.country.phone_code}{resto.contact_number}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
+                            )
+                        })
                         
                         
                     )
