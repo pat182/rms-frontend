@@ -7,7 +7,7 @@ import type {
     CompleteMenuSubcategoryPayload,
     RemovedItems,
     SavedEntity,
-} from "../../types/menu";
+} from "../types/menu";
 
 export const emptyRemovedItems = (): RemovedItems => ({
     menu_item_ids: [],

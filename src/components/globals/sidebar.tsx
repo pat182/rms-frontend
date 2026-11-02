@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
 import {
     LayoutDashboard,
     Utensils,
@@ -12,6 +13,8 @@ import {
     LogOut 
 } from "lucide-react";
 import {type SideBarProps} from "../../types/global.ts";
+import { logout } from "../../api/auth";
+import { useToast } from "./toastContext";
 
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -32,6 +35,32 @@ export default function SideBar({
 }: SideBarProps) {
 
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const navigate = useNavigate();
+    const { showToast } = useToast();
+
+    const handleLogout = async () => {
+        if (loggingOut) return;
+
+        setLoggingOut(true);
+        try {
+            const response = await logout();
+            if (!response.ok) {
+                showToast("Unable to log out. Please try again.", "error");
+                return;
+            }
+
+            localStorage.removeItem("user");
+            localStorage.removeItem("selectedRestaurantId");
+            localStorage.removeItem("csrf_token");
+            navigate("/login", { replace: true });
+        } catch {
+            showToast("Unable to log out. Please try again.", "error");
+        } finally {
+            setLoggingOut(false);
+        }
+    };
+
     // const 
     return (
         <aside
@@ -128,21 +157,19 @@ export default function SideBar({
                                 const BtmIcon = btmItem.icon;
 
                                 return (
-                                    <NavLink
+                                    <button
                                         key={btmItem.path}
-                                        to={btmItem.path}
-                                        onClick={() => setSettingsOpen(false)}
-                                        className={({ isActive }) =>
-                                            `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                                                isActive
-                                                    ? "bg-blue-50 text-blue-700"
-                                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                                            }`
-                                        }
+                                        type="button"
+                                        disabled={loggingOut}
+                                        onClick={() => {
+                                            setSettingsOpen(false);
+                                            void handleLogout();
+                                        }}
+                                        className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-wait disabled:opacity-60"
                                     >
                                         <BtmIcon size={20} className="shrink-0" />
-                                        <span>{btmItem.name}</span>
-                                    </NavLink>
+                                        <span>{loggingOut ? "Logging out..." : btmItem.name}</span>
+                                    </button>
                                 );
                             })}
                         </div>

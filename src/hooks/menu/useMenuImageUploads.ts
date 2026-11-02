@@ -10,7 +10,7 @@ import type {
 
 import { uploadMenuItemImageApi } from "../../api/menu";
 import { getApiErrorMessage } from "../../api/utils";
-import { findSavedEntity } from "./menuFormUtils";
+import { findSavedEntity } from "../../utils/menuFormUtils";
 
 type MenuImageUploadsProps = {
     menuItems: MenuItem[];

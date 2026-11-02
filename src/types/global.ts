@@ -51,3 +51,14 @@ export type Country = {
     country_code: string;
     phone_code: string;
 };
+
+export type HeaderNotification = {
+    id: number;
+    title: string;
+    content: {
+        session_id: number;
+        table_name: string;
+        status: string;
+    };
+    receivedAt: string;
+};

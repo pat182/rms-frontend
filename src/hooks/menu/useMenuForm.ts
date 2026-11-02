@@ -17,7 +17,7 @@ import { validateCompleteMenu } from "../../components/menu/validations/createMe
 import {
     buildMenuPayload,
     emptyRemovedItems,
-} from "./menuFormUtils";
+} from "../../utils/menuFormUtils";
 
 import useMenuImageUploads from "./useMenuImageUploads";
 import useMenuFormEntities from "./useMenuFormEntities";
