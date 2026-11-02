@@ -54,3 +54,15 @@ export async function refreshToken() {
         },
     })
 }
+
+export async function logout() {
+    return fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            // 'X-CSRF-Token':  localStorage.getItem('csrf_token') ?? ''
+        },
+    })
+}

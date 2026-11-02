@@ -1,5 +1,7 @@
+
+
+
 export default function Table() {
-    
     return (
         <main className="p-6">
             <div className="mb-6 flex items-center justify-between">

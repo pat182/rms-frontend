@@ -36,7 +36,6 @@ export async function apiFetch(
         headers.set('X-CSRF-Token', csrfToken);
     }
 
-    // Retry with updated CSRF token.
     return fetch(url, {
         ...options,
         headers,

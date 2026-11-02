@@ -4,7 +4,7 @@ import {
     createTempId,
     emptyRemovedItems,
     normalizeFieldValue,
-} from "./menuFormUtils";
+} from "../../utils/menuFormUtils";
 
 type UseMenuFormEntitiesParams = {
     initialRemovedItems?: RemovedItems;
