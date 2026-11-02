@@ -2,6 +2,8 @@
 import { getCookie } from './utils'
 import { API_URL } from '../config'
 
+let refreshRequest: Promise<Response> | null = null
+
 export async function login(email:string, password:string) {
     return fetch(`${API_URL}/auth`, {
         method: 'POST',
@@ -43,16 +45,35 @@ export async function getCurrentUser(shouldRefresh = true) {
 }
 
 export async function refreshToken() {
-    // console.log(  `LOCAL: ${localStorage.getItem('csrf_token')}`)
-    return fetch(`${API_URL}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-Token':  localStorage.getItem('csrf_token') ?? ''
-        },
-    })
+    if (!refreshRequest) {
+        refreshRequest = fetch(`${API_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': localStorage.getItem('csrf_token') ?? ''
+            },
+        }).then(async response => {
+            if (response.ok) {
+                const payload: unknown = await response.clone().json()
+                if (
+                    typeof payload === 'object' &&
+                    payload !== null &&
+                    'csrf' in payload &&
+                    typeof payload.csrf === 'string'
+                ) {
+                    localStorage.setItem('csrf_token', payload.csrf)
+                }
+            }
+
+            return response
+        }).finally(() => {
+            refreshRequest = null
+        })
+    }
+
+    return (await refreshRequest).clone()
 }
 
 export async function logout() {
