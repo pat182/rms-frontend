@@ -1,7 +1,15 @@
-import { refreshToken } from './auth';
+import { logout, refreshToken } from './auth';
 
-import { getCookie } from './utils'
-
+async function logoutAndRedirect(): Promise<void> {
+    try {
+        await logout();
+    } finally {
+        localStorage.removeItem('user');
+        localStorage.removeItem('selectedRestaurantId');
+        localStorage.removeItem('csrf_token');
+        window.location.replace('/login');
+    }
+}
 
 export async function apiFetch(
     url: string,
@@ -20,15 +28,22 @@ export async function apiFetch(
         return response;
     }
 
-    const refreshResponse = await refreshToken();
+    let refreshResponse: Response;
+    
+    try {
+        refreshResponse = await refreshToken();
+    } catch (error) {
+        await logoutAndRedirect();
+        throw error;
+    }
 
     if (!refreshResponse.ok) {
+        await logoutAndRedirect();
         return response;
     }
 
-    // Get the newly generated CSRF token.
-    const resRes =  await refreshResponse.json();
-    const csrfToken = resRes.csrf
+    const refreshData = await refreshResponse.json();
+    const csrfToken = refreshData.csrf;
     const headers = new Headers(options.headers);
 
     if (csrfToken) {
@@ -36,9 +51,15 @@ export async function apiFetch(
         headers.set('X-CSRF-Token', csrfToken);
     }
 
-    return fetch(url, {
+    const retryResponse = await fetch(url, {
         ...options,
         headers,
         credentials: 'include',
     });
+
+    if (retryResponse.status === 401) {
+        await logoutAndRedirect();
+    }
+
+    return retryResponse;
 }

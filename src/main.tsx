@@ -11,7 +11,7 @@ import Menu from './pages/menu/menu.tsx'
 import CreateMenu from './pages/menu/createMenu.tsx'
 import Restaurant from './pages/restaurant/restaurant.tsx'
 
-import Table from './pages/table/table.tsx'
+import Table from './pages/table/diningSession.tsx'
 import PrivateRoutes from './components/protected.tsx'
 import GuestRoutes from './components/guestRoute.tsx'
 import Layout from './components/layout.tsx'

@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import {
     LayoutDashboard,
     Utensils,
     Armchair,
+    Clock3,
     Settings,
     Menu,
     X,
     Store,
+    ChevronDown,
     ChevronUp,
     LogOut 
 } from "lucide-react";
@@ -20,7 +22,6 @@ const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Manage Restaurant", icon:Store, path:"/restaurant"},
     { name: "Menu Management", icon: Utensils, path: "/menu" },
-    { name: "Table Management", icon: Armchair, path: "/table" },
 
     // { name: "Settings", icon: Settings, path: "/settings" },
 ];
@@ -35,6 +36,10 @@ export default function SideBar({
 }: SideBarProps) {
 
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const location = useLocation();
+    const [tablesOpen, setTablesOpen] = useState(
+        location.pathname.startsWith("/table")
+    );
     const [loggingOut, setLoggingOut] = useState(false);
     const navigate = useNavigate();
     const { showToast } = useToast();
@@ -127,6 +132,66 @@ export default function SideBar({
                         </NavLink>
                     );
                 })}
+                <div>
+                    <button
+                        type="button"
+                        aria-expanded={tablesOpen}
+                        onClick={() => {
+                            if (!sidebarOpen) {
+                                setSidebarOpen(true);
+                                setTablesOpen(true);
+                                return;
+                            }
+                            setTablesOpen((open) => !open);
+                        }}
+                        title={!sidebarOpen ? "Tables" : undefined}
+                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+                            location.pathname.startsWith("/table")
+                                ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100"
+                                : "text-slate-600 hover:translate-x-0.5 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                    >
+                        <Armchair size={20} className="shrink-0" />
+                        {sidebarOpen && (
+                            <>
+                                <span className="flex-1">Tables</span>
+                                <ChevronDown
+                                    size={16}
+                                    className={`transition-transform ${tablesOpen ? "rotate-180" : ""}`}
+                                />
+                            </>
+                        )}
+                    </button>
+                    {tablesOpen && sidebarOpen && (
+                        <div className="ml-4 mt-1 border-l border-slate-200 pl-2">
+                            <button
+                                type="button"
+                                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                            >
+                                <Armchair size={16} className="mr-2 inline-block" />
+                                Table Management
+                            </button>
+                            <NavLink
+                                to="/table"
+                                onClick={() => {
+                                    if (window.innerWidth < 768) {
+                                        setSidebarOpen(false);
+                                    }
+                                }}
+                                className={({ isActive }) =>
+                                    `block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                                        isActive
+                                            ? "bg-blue-50 text-blue-700"
+                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                    }`
+                                }
+                            >
+                                <Clock3 size={16} className="mr-2 inline-block" />
+                                Dining Sessions
+                            </NavLink>
+                        </div>
+                    )}
+                </div>
             </nav>
             <nav className="p-3">
                 <div className="relative">

@@ -4,7 +4,9 @@ import { type SideBarProps } from "../../types/global";
 import { useRestaurant } from "./restaurantContext";
 import { useNavigate } from "react-router-dom";
 import { connectAdminWebSocket } from "../../utils/websocket";
-import {HeaderNotification} from "../../types/global";
+import { HeaderNotification } from "../../types/global";
+import { updateRestaurantTableStatus } from "../../api/restaurantTable";
+import { useToast } from "./toastContext";
 
 
 export default function TopBar({
@@ -12,6 +14,7 @@ export default function TopBar({
     setSidebarOpen,
 }: SideBarProps) {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const restaurants = Array.isArray(user?.restaurants) ? user.restaurants : [];
 
@@ -19,7 +22,6 @@ export default function TopBar({
         selectedRestaurantId,
         setSelectedRestaurantId,
     } = useRestaurant();
-
 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -34,6 +36,30 @@ export default function TopBar({
             (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
         )?.restaurant_name ?? "Restaurant";
 
+    const updateNotificationStatus = async (
+        notification: HeaderNotification,
+        action: "accept" | "reject",
+    ) => {
+        try {
+            const response = await updateRestaurantTableStatus(
+                notification.content.session_token,
+                action === "accept" ? "verified" : "rejected",
+            );
+
+            if (!response.ok) {
+                showToast(`Unable to ${action} the dining session. Please try again.`, "error");
+                return;
+            }
+
+            setNotifications((current) =>
+                current.filter((item) => item.id !== notification.id),
+            );
+            showToast(`Dining session ${action === "accept" ? "accepted" : "rejected"}.`, "success");
+        } catch {
+            showToast(`Unable to ${action} the dining session. Please try again.`, "error");
+        }
+    };
+
     useEffect(() => {
         if (selectedRestaurantId == null) return;
 
@@ -41,7 +67,7 @@ export default function TopBar({
 
         const socket = connectAdminWebSocket(
             // `customer_status/123123123123`,
-            `customer_status/${selectedRestaurantId}`,
+            `admin_notification/${selectedRestaurantId}`,
             (message) => {
                 if (message.event !== "dining_session_created") return;
 
@@ -264,14 +290,14 @@ export default function TopBar({
                                             <div className="mt-3 flex items-center gap-4 text-sm font-medium">
                                                 <button
                                                     type="button"
-                                                    onClick={() => console.log("test")}
+                                                    onClick={() => void updateNotificationStatus(notification, "accept")}
                                                     className="cursor-pointer text-green-600 transition hover:text-green-700 hover:underline focus:outline-none focus:underline"
                                                 >
                                                     Accept
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => console.log("test")}
+                                                    onClick={() => void updateNotificationStatus(notification, "reject")}
                                                     className="cursor-pointer text-red-600 transition hover:text-red-700 hover:underline focus:outline-none focus:underline"
                                                 >
                                                     Reject
