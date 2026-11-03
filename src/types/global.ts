@@ -57,6 +57,7 @@ export type HeaderNotification = {
     title: string;
     content: {
         session_id: number;
+        session_token: string;
         table_name: string;
         status: string;
     };
