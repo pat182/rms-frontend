@@ -43,7 +43,7 @@ export default function TopBar({
         try {
             const response = await updateRestaurantTableStatus(
                 notification.content.session_token,
-                action === "accept" ? "verified" : "rejected",
+                action === "accept" ? "verified" : "closed",
             );
 
             if (!response.ok) {
@@ -51,6 +51,15 @@ export default function TopBar({
                 return;
             }
 
+            const status = action === "accept" ? "verified" : "closed";
+            window.dispatchEvent(
+                new CustomEvent("dining-session-status-updated", {
+                    detail: {
+                        session_id: notification.content.session_id,
+                        status,
+                    },
+                }),
+            );
             setNotifications((current) =>
                 current.filter((item) => item.id !== notification.id),
             );
@@ -71,6 +80,9 @@ export default function TopBar({
             (message) => {
                 if (message.event !== "dining_session_created") return;
 
+                window.dispatchEvent(
+                    new CustomEvent("dining-session-created", { detail: message.data }),
+                );
                 notificationIdRef.current += 1;
 
                 setNotifications((current) => [
@@ -89,6 +101,23 @@ export default function TopBar({
             socket.close();
         };
     }, [selectedRestaurantId]);
+
+    useEffect(() => {
+        const handleDiningSessionStatusUpdated = (event: Event) => {
+            const { session_id } = (
+                event as CustomEvent<{ session_id: number }>
+            ).detail;
+
+            setNotifications((current) =>
+                current.filter((notification) => notification.content.session_id !== session_id),
+            );
+        };
+
+        window.addEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+        return () => {
+            window.removeEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+        };
+    }, []);
 
     useEffect(() => {
 

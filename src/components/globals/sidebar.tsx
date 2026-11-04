@@ -104,7 +104,7 @@ export default function SideBar({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
+            <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
 
