@@ -1,4 +1,4 @@
-import { Country } from "./global.ts";
+import { Country, GetQueryParams } from "./global.ts";
 
 export type RestaurantContextType = {
     selectedRestaurantId: number | null;
@@ -16,13 +16,14 @@ export type Restuarant = {
 }
 export type DiningSession = {
     id: number;
-    restaurant_table_id: number;
+    restaurant_table_id?: number;
     session_token: string;
     is_active: boolean;
-    status: string;
+    status: 'pending' | 'verified' | 'closed';
     started_at: string;
+    created_at?: string;
     closed_at: string | null;
-    restaurant_table: RestaurantTable;
+    restaurant_table: Pick<RestaurantTable, "table_name">;
 };
 
 export type RestaurantTable = {
@@ -36,3 +37,10 @@ export type RestaurantTable = {
     updated_at: string;
     dining_sessions: DiningSession[];
 };
+
+export interface GetDiningSessionParams extends GetQueryParams {
+    is_active?: boolean;
+    status?: 'pending' | 'verified' | 'closed';
+    started_from?: string;
+    started_to?: string;
+}

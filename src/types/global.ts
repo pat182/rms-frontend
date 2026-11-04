@@ -59,7 +59,10 @@ export type HeaderNotification = {
         session_id: number;
         session_token: string;
         table_name: string;
-        status: string;
+        is_active: boolean;
+        started_at: string;
+        closed_at: string | null;
+        status: "pending" | "verified" | "closed";
     };
     receivedAt: string;
 };
