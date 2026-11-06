@@ -1,6 +1,3 @@
-
-
-
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Armchair, Check, ChevronDown, LoaderCircle, X } from "lucide-react";
 import { getDiningSession, updateRestaurantTableStatus } from "../../api/restaurantTable.ts";
@@ -8,10 +5,12 @@ import { getApiErrorMessage } from "../../api/utils.ts";
 import type { DiningSession } from "../../types/restaurant.ts";
 import type { HeaderNotification } from "../../types/global.ts";
 import { useToast } from "../../components/globals/toastContext.tsx";
+import { useRestaurant } from "../../components/globals/restaurantContext";
 
 const DINING_SESSION_PAGE_SIZE = 8;
 
 export default function Table() {
+    const { selectedRestaurantId } = useRestaurant();
     const [sessions, setSessions] = useState<DiningSession[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [page, setPage] = useState(1);
@@ -42,7 +41,7 @@ export default function Table() {
     const invalidDraftDateRange = Boolean(
         draftCreatedFrom && draftCreatedTo && draftCreatedFrom > draftCreatedTo
     );
-
+    
     const applyFilters = () => {
         if (invalidDraftDateRange) return;
         loadingMoreRef.current = false;
@@ -111,6 +110,11 @@ export default function Table() {
         } finally {
             setUpdatingSessionId(null);
         }
+    };
+
+    const retryLoadingMore = () => {
+        loadingMoreRef.current = true;
+        setLoadMoreRetry((retry) => retry + 1);
     };
 
     useEffect(() => {
@@ -201,7 +205,7 @@ export default function Table() {
         return () => {
             cancelled = true;
         };
-    }, [activeFilter, createdFrom, createdTo, page, loadMoreRetry]);
+    }, [selectedRestaurantId,activeFilter, createdFrom, createdTo, page, loadMoreRetry]);
 
     useEffect(() => {
         const sentinel = loadMoreRef.current;
@@ -220,10 +224,7 @@ export default function Table() {
         return () => observer.disconnect();
     }, [hasMore, loading, loadingMore, loadMoreError, sessions.length]);
 
-    const retryLoadingMore = () => {
-        loadingMoreRef.current = true;
-        setLoadMoreRetry((retry) => retry + 1);
-    };
+    
 
     useEffect(() => {
         const handleDiningSessionCreated = (event: Event) => {

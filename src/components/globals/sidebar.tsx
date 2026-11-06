@@ -172,7 +172,7 @@ export default function SideBar({
                                 Table Management
                             </button>
                             <NavLink
-                                to="/table"
+                                to="/dining-sessions"
                                 onClick={() => {
                                     if (window.innerWidth < 768) {
                                         setSidebarOpen(false);

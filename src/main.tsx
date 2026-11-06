@@ -36,7 +36,7 @@ createRoot(document.getElementById('root')!).render(
                                 <Route path="/menu" element={<Menu />} />
                                 <Route path="/menu/create" element={<CreateMenu />}/>
                                 <Route path="/menu/edit/:id" element={<CreateMenu />}/>
-                                <Route path="/table" element={<Table />}/>
+                                <Route path="/dining-sessions" element={<Table />}/>
                                 <Route path="/restaurant" element={<Restaurant/>} />
                             </Route>
                         </Route>
