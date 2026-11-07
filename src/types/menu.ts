@@ -296,3 +296,4 @@ export type RemovedItems = {
     subcategory_ids: number[];
     category_ids: number[];
 };
+

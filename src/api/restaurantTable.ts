@@ -1,6 +1,7 @@
 import { apiFetch } from './fetchWrapper';
 import { API_URL } from '../config';
 import { GetDiningSessionParams } from '../types/restaurant.ts';
+import { GetQueryParams } from '../types/global.ts';
 
 
 export async function getDiningSession(
@@ -40,7 +41,7 @@ export async function getDiningSession(
 }
 
 
-export async function updateRestaurantTableStatus(
+export async function updateDiningSessionStatus(
     sessionToken: string,
     status: 'pending' | 'verified' | 'closed',
 ): Promise<Response> {
@@ -58,3 +59,34 @@ export async function updateRestaurantTableStatus(
         },
     );
 }
+
+export async function getRestaurantTables(
+    {
+        page = 1,
+        page_size = 25,
+        sort_by = "created_at",
+        sort_order = "desc",
+        search,
+
+    }: GetQueryParams = {},
+): Promise<Response> {
+
+    const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(page_size),
+    });
+
+    if (sort_by) params.set('sort_by', sort_by);
+    if (sort_order) params.set('sort_order', sort_order);
+    if (search) params.set('search', search);
+
+    return apiFetch(`${API_URL}/restaurant-table?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-type': 'application/json',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
+    });
+}
+

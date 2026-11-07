@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 import type {
     Dispatch,
     ReactNode,
@@ -65,4 +67,18 @@ export type HeaderNotification = {
         status: "pending" | "verified" | "closed";
     };
     receivedAt: string;
+};
+
+export type ActionMenuItem<T> = {
+    label: string;
+    icon: LucideIcon;
+    onSelect: (item: T) => void;
+    variant?: "default" | "danger";
+    separatorBefore?: boolean;
+};
+
+export type ActionMenuProps<T> = {
+    item: T;
+    itemLabel: string;
+    actions: ActionMenuItem<T>[];
 };

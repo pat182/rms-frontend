@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Armchair, Check, ChevronDown, LoaderCircle, X } from "lucide-react";
-import { getDiningSession, updateRestaurantTableStatus } from "../../api/restaurantTable.ts";
+import { getDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
 import type { DiningSession } from "../../types/restaurant.ts";
 import type { HeaderNotification } from "../../types/global.ts";
@@ -9,7 +9,7 @@ import { useRestaurant } from "../../components/globals/restaurantContext";
 
 const DINING_SESSION_PAGE_SIZE = 8;
 
-export default function Table() {
+export default function DiningSession() {
     const { selectedRestaurantId } = useRestaurant();
     const [sessions, setSessions] = useState<DiningSession[]>([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -69,7 +69,7 @@ export default function Table() {
         setUpdatingSessionId(session.id);
 
         try {
-            const response = await updateRestaurantTableStatus(session.session_token, status);
+            const response = await updateDiningSessionStatus(session.session_token, status);
             if (!response.ok) {
                 throw new Error(await getApiErrorMessage(response));
             }

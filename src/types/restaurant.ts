@@ -44,3 +44,12 @@ export interface GetDiningSessionParams extends GetQueryParams {
     started_from?: string;
     started_to?: string;
 }
+
+
+export type RestaurantTableActionProps = {
+    table: RestaurantTable;
+    onViewQr: (table: RestaurantTable) => void;
+    // onView: (table: RestaurantTable) => void;
+    // onEdit: (table: RestaurantTable) => void;
+    // onDelete: (table: RestaurantTable) => void;
+};
