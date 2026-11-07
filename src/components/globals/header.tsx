@@ -5,7 +5,7 @@ import { useRestaurant } from "./restaurantContext";
 import { useNavigate } from "react-router-dom";
 import { connectAdminWebSocket } from "../../utils/websocket";
 import { HeaderNotification } from "../../types/global";
-import { updateRestaurantTableStatus } from "../../api/restaurantTable";
+import { updateDiningSessionStatus } from "../../api/restaurantTable";
 import { useToast } from "./toastContext";
 
 
@@ -41,7 +41,7 @@ export default function TopBar({
         action: "accept" | "reject",
     ) => {
         try {
-            const response = await updateRestaurantTableStatus(
+            const response = await updateDiningSessionStatus(
                 notification.content.session_token,
                 action === "accept" ? "verified" : "closed",
             );

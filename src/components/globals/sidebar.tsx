@@ -26,6 +26,26 @@ const menuItems = [
     // { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
+const tablesNavigation = {
+    name: "Tables",
+    icon: Armchair,
+    pathPrefix: "/table",
+    items: [
+        {
+            name: "Table Management",
+            icon: Armchair,
+            path: "/table",
+            closeSidebarOnMobile: true,
+        },
+        {
+            name: "Dining Sessions",
+            icon: Clock3,
+            path: "/dining-sessions",
+            closeSidebarOnMobile: true,
+        },
+    ],
+};
+
 const settingsItem = [
     {name: "Logout",icon:LogOut,path:"/"}
 ]
@@ -144,17 +164,17 @@ export default function SideBar({
                             }
                             setTablesOpen((open) => !open);
                         }}
-                        title={!sidebarOpen ? "Tables" : undefined}
+                        title={!sidebarOpen ? tablesNavigation.name : undefined}
                         className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
-                            location.pathname.startsWith("/table")
+                            location.pathname.startsWith(tablesNavigation.pathPrefix)
                                 ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100"
                                 : "text-slate-600 hover:translate-x-0.5 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                     >
-                        <Armchair size={20} className="shrink-0" />
+                        <tablesNavigation.icon size={20} className="shrink-0" />
                         {sidebarOpen && (
                             <>
-                                <span className="flex-1">Tables</span>
+                                <span className="flex-1">{tablesNavigation.name}</span>
                                 <ChevronDown
                                     size={16}
                                     className={`transition-transform ${tablesOpen ? "rotate-180" : ""}`}
@@ -164,31 +184,35 @@ export default function SideBar({
                     </button>
                     {tablesOpen && sidebarOpen && (
                         <div className="ml-4 mt-1 border-l border-slate-200 pl-2">
-                            <button
-                                type="button"
-                                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900"
-                            >
-                                <Armchair size={16} className="mr-2 inline-block" />
-                                Table Management
-                            </button>
-                            <NavLink
-                                to="/dining-sessions"
-                                onClick={() => {
-                                    if (window.innerWidth < 768) {
-                                        setSidebarOpen(false);
-                                    }
-                                }}
-                                className={({ isActive }) =>
-                                    `block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                                        isActive
-                                            ? "bg-blue-50 text-blue-700"
-                                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                                    }`
-                                }
-                            >
-                                <Clock3 size={16} className="mr-2 inline-block" />
-                                Dining Sessions
-                            </NavLink>
+                            {tablesNavigation.items.map((item) => {
+                                const Icon = item.icon;
+
+                                return (
+                                    <NavLink
+                                        key={item.name}
+                                        to={item.path}
+                                        onClick={
+                                            item.closeSidebarOnMobile
+                                                ? () => {
+                                                      if (window.innerWidth < 768) {
+                                                          setSidebarOpen(false);
+                                                      }
+                                                  }
+                                                : undefined
+                                        }
+                                        className={({ isActive }) =>
+                                            `block rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                                                isActive
+                                                    ? "bg-blue-50 text-blue-700"
+                                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                            }`
+                                        }
+                                    >
+                                        <Icon size={16} className="mr-2 inline-block" />
+                                        {item.name}
+                                    </NavLink>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

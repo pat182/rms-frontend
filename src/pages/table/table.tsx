@@ -2,16 +2,84 @@
 
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Armchair } from "lucide-react";
-import { getDiningSession } from "../../api/restaurantTable.ts";
+import { X } from "lucide-react";
+import QRCode from "qrcode";
+import { getRestaurantTables } from "../../api/restaurantTable.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
 import type { RestaurantTable } from "../../types/restaurant.ts";
-
+import { TableLoader } from "../../components/globals/tableLoader.tsx";
+import RestaurantTableActions from "../../components/restaurantTable/restaurantTableAction.tsx";
+import { CUSTOMER_APP } from '../../config'
+import { useToast } from "../../components/globals/toastContext.tsx";
 
 export default function Table() {
     const [tables, setTables] = useState<RestaurantTable[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
+    const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
+    const { showToast } = useToast();
+
+    const handleViewQr = (table: RestaurantTable) => {
+        if (!CUSTOMER_APP) {
+            showToast("The customer app URL is not configured.", "error");
+            return;
+        }
+        if (!table.qr_token) {
+            showToast("This table does not have a QR token.", "error");
+            return;
+        }
+
+        setQrCodeDataUrl("");
+        setQrTable(table);
+    };
+
+    useEffect(() => {
+        if (!qrTable) return;
+
+        const tableToEncode = qrTable;
+        let cancelled = false;
+
+        async function generateQrCode() {
+            const customerUrl = `${CUSTOMER_APP.replace(/\/+$/, "")}/${encodeURIComponent(tableToEncode.qr_token)}`;
+
+            try {
+                const dataUrl = await QRCode.toDataURL(customerUrl, {
+                    width: 256,
+                    margin: 2,
+                });
+                if (!cancelled) {
+                    setQrCodeDataUrl(dataUrl);
+                }
+            } catch (qrGenerationError) {
+                if (!cancelled) {
+                    showToast(
+                        qrGenerationError instanceof Error
+                            ? qrGenerationError.message
+                            : "Unable to generate the table QR code.",
+                        "error"
+                    );
+                }
+            }
+        }
+
+        void generateQrCode();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [qrTable, showToast]);
+
+    useEffect(() => {
+        if (!qrTable) return;
+
+        function handleEscape(event: KeyboardEvent) {
+            if (event.key === "Escape") setQrTable(null);
+        }
+
+        document.addEventListener("keydown", handleEscape);
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [qrTable]);
 
     useEffect(() => {
         let cancelled = false;
@@ -21,7 +89,7 @@ export default function Table() {
                 setLoading(true);
                 setError("");
 
-                const response = await getDiningSession();
+                const response = await getRestaurantTables();
                 if (!response.ok) {
                     throw new Error(await getApiErrorMessage(response));
                 }
@@ -70,113 +138,141 @@ export default function Table() {
 
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {loading ? (
-                    Array.from({ length: 4 }, (_, index) => (
-                        <div
-                            key={index}
-                            aria-hidden="true"
-                            className="relative min-h-56 animate-pulse overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"
-                        >
-                            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-100 via-blue-200 to-cyan-100" />
-                            <div className="mx-auto mt-3 h-12 w-12 rounded-2xl bg-blue-50" />
-                            <div className="mx-auto mt-5 h-5 w-2/3 rounded-full bg-slate-100" />
-                            <div className="mx-auto mt-4 h-6 w-24 rounded-full bg-slate-100" />
-                        </div>
-                    ))
-                ) : error ? (
-                    <div
-                        role="alert"
-                        className="col-span-full flex items-start gap-4 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-800 shadow-sm"
-                    >
-                        <div className="rounded-xl bg-white p-2 text-rose-600 shadow-sm">
-                            <AlertCircle aria-hidden="true" className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold">Unable to load tables</h2>
-                            <p className="mt-1 text-sm text-rose-700">{error}</p>
-                        </div>
-                    </div>
-                ) : tables.length === 0 ? (
-                    <div className="col-span-full rounded-2xl border border-slate-200/80 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-sm">
-                        No restaurant tables found.
-                    </div>
-                ) : (
-                    tables.map((table, index) => {
-                        const tableName = table.table_name || `Table ${table.id ?? index + 1}`;
-                        const activeSession = table.dining_sessions.find(
-                            (session) => session.is_active
-                        );
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th className="border-b border-slate-200 px-6 py-4">ID</th>
+                                <th className="border-b border-slate-200 px-6 py-4">Table Name</th>
+                                <th className="border-b border-slate-200 px-6 py-4">Capacity</th>
+                                <th className="border-b border-slate-200 px-6 py-4">Status</th>
+                                <th className="border-b border-slate-200 px-6 py-4">Dining Session</th>
+                                <th className="border-b border-slate-200 px-6 py-4">Sessions</th>
+                                <th className="border-b border-slate-200 px-6 py-4 text-right">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-600">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                        <TableLoader />
+                                    </td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan={6} role="alert" className="px-6 py-12 text-center text-red-600">
+                                        {error}
+                                    </td>
+                                </tr>
+                            ) : tables.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                        No restaurant tables found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                tables.map((table, index) => {
+                                    const tableName = table.table_name || `Table ${table.id ?? index + 1}`;
+                                    const activeSession = table.dining_sessions.find(
+                                        (session) => session.is_active
+                                    );
 
-                        return (
-                            <article
-                                key={table.id ?? `${tableName}-${index}`}
-                                className="group relative flex min-h-56 flex-col items-center overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/60"
-                            >
-                                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6495ED] via-blue-300 to-cyan-300" />
-
-                                <span
-                                    className={`absolute right-4 top-5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                                        table.is_active
-                                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                                            : "bg-slate-100 text-slate-500 ring-1 ring-slate-200"
-                                    }`}
-                                >
-                                    {table.is_active ? "Active" : "Inactive"}
-                                </span>
-
-                                <div className="mb-4 flex justify-center pt-2">
-                                    <div className="rounded-2xl bg-blue-50 p-3 transition duration-200 group-hover:scale-105 group-hover:bg-blue-100">
-                                        <Armchair aria-hidden="true" className="h-7 w-7 text-[#6495ED]" />
-                                    </div>
-                                </div>
-
-                                <h2 className="mb-4 text-center text-lg font-semibold tracking-tight text-slate-700">
-                                    {tableName}
-                                </h2>
-                                <div className="mt-auto w-full space-y-3 border-t border-slate-100 pt-4 text-sm">
-                                    <div className="flex justify-between gap-4">
-                                        <span className="text-slate-400">Capacity</span>
-                                        <span className="font-medium text-slate-600">{table.capacity}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-4">
-                                        <span className="text-slate-400">Dining session</span>
-                                        <span
-                                            className={`font-medium ${
-                                                activeSession ? "text-amber-700" : "text-slate-500"
-                                            }`}
+                                    return (
+                                        <tr
+                                            key={table.id ?? `${tableName}-${index}`}
+                                            className="transition-colors hover:bg-blue-50/50"
                                         >
-                                            {activeSession ? "In use" : "Available"}
-                                        </span>
-                                    </div>
-                                    {activeSession && (
-                                        <>
-                                            <div className="flex justify-between gap-4">
-                                                <span className="text-slate-400">Session</span>
-                                                <span className="font-medium text-slate-600">
-                                                    #{activeSession.id}
+                                            <td className="px-6 py-4 text-xs font-medium text-slate-400">
+                                                {table.id}
+                                            </td>
+                                            <td className="whitespace-nowrap px-6 py-4 font-semibold text-slate-800">
+                                                {tableName}
+                                            </td>
+                                            <td className="px-6 py-4">{table.capacity}</td>
+                                            <td className="px-6 py-4">
+                                                <span
+                                                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                                        table.is_active
+                                                            ? "bg-emerald-50 text-emerald-700"
+                                                            : "bg-slate-100 text-slate-500"
+                                                    }`}
+                                                >
+                                                    {table.is_active ? "Active" : "Inactive"}
                                                 </span>
-                                            </div>
-                                            <div className="flex justify-between gap-4">
-                                                <span className="text-slate-400">Status</span>
-                                                <span className="font-medium capitalize text-slate-600">
-                                                    {activeSession.status}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span
+                                                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                                        activeSession
+                                                            ? "bg-amber-50 text-amber-700"
+                                                            : "bg-slate-100 text-slate-500"
+                                                    }`}
+                                                >
+                                                    {activeSession ? "In use" : "Available"}
                                                 </span>
-                                            </div>
-                                            <div className="flex justify-between gap-4">
-                                                <span className="text-slate-400">Started</span>
-                                                <span className="text-right font-medium text-slate-600">
-                                                    {new Date(activeSession.started_at).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </article>
-                        );
-                    })
-                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {table.dining_sessions.length}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <RestaurantTableActions
+                                                    table={table}
+                                                    onViewQr={handleViewQr}
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+
+                </div>
             </div>
+            {qrTable && (
+                <div
+                    className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/50 p-4"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setQrTable(null);
+                    }}
+                >
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Table QR code"
+                        className="rounded-xl bg-white p-2 shadow-2xl"
+                    >
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setQrTable(null)}
+                                className="rounded-lg p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                                aria-label="Close QR code dialog"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        {qrCodeDataUrl ? (
+                            <img
+                                src={qrCodeDataUrl}
+                                alt={`QR code for ${qrTable.table_name}`}
+                                className="h-64 w-64 max-w-full object-contain"
+                            />
+                        ) : (
+                            <div
+                                role="status"
+                                aria-label="Generating QR code"
+                                className="flex h-64 w-64 items-center justify-center"
+                            >
+                                <TableLoader />
+                            </div>
+                        )}
+                    </section>
+                </div>
+            )}
         </main>
     );
 }
