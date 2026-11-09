@@ -82,3 +82,20 @@ export type ActionMenuProps<T> = {
     itemLabel: string;
     actions: ActionMenuItem<T>[];
 };
+
+export type ConfirmationDialogProps = {
+    action: string;
+    onYes: () => void;
+    onNo: () => void;
+    isProcessing?: boolean;
+};
+
+export type TablePaginationProps = {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    hasNextPage: boolean;
+    loading: boolean;
+    itemLabel: string;
+    onPageChange: (page: number) => void;
+};

@@ -5,12 +5,18 @@ import type {Menu} from '../../types/menu.ts';
 import  useMenuDefault  from '../../hooks/menu/useMenuDefault.ts';
 
 import {TableLoader} from '../../components/globals/tableLoader.tsx';
+import TablePagination from '../../components/globals/tablePagination.tsx';
 
 
 export default function Menu() {
     const {
         navigate,
         menus,
+        page,
+        pageSize,
+        totalItems,
+        hasNextPage,
+        setPage,
         loading,
         error,
         handleView,
@@ -156,6 +162,15 @@ export default function Menu() {
                         </tbody>
                     </table>
                 </div>
+                <TablePagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalItems={totalItems}
+                    hasNextPage={hasNextPage}
+                    loading={loading}
+                    itemLabel="menus"
+                    onPageChange={setPage}
+                />
             </div>
         </main>
     );

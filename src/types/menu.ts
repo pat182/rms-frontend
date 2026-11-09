@@ -1,4 +1,6 @@
 
+import type { Dispatch, SetStateAction } from "react";
+
 export type Menu = {
     id: number;
     menu_name: string;
@@ -42,6 +44,19 @@ export type Category = {
     sort_order: number;
     menu_items: MenuItem[];
     subcategories: Subcategory[];
+};
+
+export type UseLoadMenuParams = {
+    isEditing: boolean;
+    menuId: number | null;
+    setMenuName: Dispatch<SetStateAction<string>>;
+    setDescription: Dispatch<SetStateAction<string>>;
+    setIsActive: Dispatch<SetStateAction<boolean>>;
+    resetLoadedEntities: (
+        menuItems: MenuItem[],
+        categories: Category[]
+    ) => void;
+    showToast: (message: string, type: "success" | "error") => void;
 };
 
 export type CompleteMenuItemPayload = Omit<
@@ -296,4 +311,3 @@ export type RemovedItems = {
     subcategory_ids: number[];
     category_ids: number[];
 };
-

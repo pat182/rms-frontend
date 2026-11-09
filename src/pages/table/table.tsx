@@ -5,28 +5,38 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import QRCode from "qrcode";
 import { useNavigate } from "react-router-dom";
-import { getRestaurantTables } from "../../api/restaurantTable.ts";
-import { getApiErrorMessage } from "../../api/utils.ts";
 import type { RestaurantTable } from "../../types/restaurant.ts";
 import { TableLoader } from "../../components/globals/tableLoader.tsx";
 import RestaurantTableActions from "../../components/restaurantTable/restaurantTableAction.tsx";
 import { CUSTOMER_APP } from '../../config'
 import { useToast } from "../../components/globals/toastContext.tsx";
-import { useRestaurant } from "../../components/globals/restaurantContext.tsx";
+import ConfirmationDialog from "../../components/globals/confirmationDialog.tsx";
+import TablePagination from "../../components/globals/tablePagination.tsx";
+import useRestaurantTableDefault from "../../hooks/restaurantTable/useRestaurantTableDefault.ts";
 
 export default function Table() {
     const navigate = useNavigate();
-    const [tables, setTables] = useState<RestaurantTable[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const {
+        tables,
+        page,
+        pageSize,
+        totalItems,
+        hasNextPage,
+        setPage,
+        loading,
+        error,
+        tableToDelete,
+        isDeleting,
+        handleEdit,
+        handleDelete,
+        confirmDelete,
+        closeDeleteConfirmation,
+    } = useRestaurantTableDefault();
+    
     const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
     const { showToast } = useToast();
-    const { selectedRestaurantId } = useRestaurant();
 
-    const handleEdit = (table: RestaurantTable) => {
-        console.log(table);
-    }
 
     const handleViewQr = (table: RestaurantTable) => {
         if (!CUSTOMER_APP) {
@@ -89,48 +99,6 @@ export default function Table() {
         return () => document.removeEventListener("keydown", handleEscape);
     }, [qrTable]);
 
-    useEffect(() => {
-        let cancelled = false;
-
-        async function fetchTables() {
-            try {
-                setLoading(true);
-                setError("");
-
-                const response = await getRestaurantTables();
-                if (!response.ok) {
-                    throw new Error(await getApiErrorMessage(response));
-                }
-
-                const result: { data?: RestaurantTable[] } = await response.json();
-                if (!Array.isArray(result.data)) {
-                    throw new Error("The restaurant tables response was invalid.");
-                }
-
-                if (!cancelled) {
-                    setTables(result.data);
-                }
-            } catch (fetchError) {
-                if (!cancelled) {
-                    setError(
-                        fetchError instanceof Error
-                            ? fetchError.message
-                            : "Unable to load restaurant tables."
-                    );
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-
-        void fetchTables();
-        return () => {
-            cancelled = true;
-        };
-    }, [selectedRestaurantId]);
-
     return (
         <main className="p-6">
             <div className="mb-8 flex flex-col gap-5 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -172,19 +140,19 @@ export default function Table() {
                         <tbody className="divide-y divide-slate-100 text-slate-600">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                                         <TableLoader />
                                     </td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={6} role="alert" className="px-6 py-12 text-center text-red-600">
+                                    <td colSpan={7} role="alert" className="px-6 py-12 text-center text-red-600">
                                         {error}
                                     </td>
                                 </tr>
                             ) : tables.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                                         No restaurant tables found.
                                     </td>
                                 </tr>
@@ -237,6 +205,7 @@ export default function Table() {
                                                     table={table}
                                                     onViewQr={handleViewQr}
                                                     onEdit={handleEdit}
+                                                    onDelete={handleDelete}
                                                 />
                                             </td>
                                         </tr>
@@ -247,6 +216,15 @@ export default function Table() {
                     </table>
 
                 </div>
+                <TablePagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalItems={totalItems}
+                    hasNextPage={hasNextPage}
+                    loading={loading}
+                    itemLabel="tables"
+                    onPageChange={setPage}
+                />
             </div>
             {qrTable && (
                 <div
@@ -288,6 +266,14 @@ export default function Table() {
                         )}
                     </section>
                 </div>
+            )}
+            {tableToDelete && (
+                <ConfirmationDialog
+                    action={`delete "${tableToDelete.table_name}"`}
+                    onYes={() => void confirmDelete()}
+                    onNo={closeDeleteConfirmation}
+                    isProcessing={isDeleting}
+                />
             )}
         </main>
     );
