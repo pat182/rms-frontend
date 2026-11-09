@@ -13,7 +13,9 @@ import Dashboard from './pages/dashboard.tsx'
 import Menu from './pages/menu/menu.tsx'
 import CreateMenu from './pages/menu/createMenu.tsx'
 import Restaurant from './pages/restaurant/restaurant.tsx'
+import RestaurantCreate from './pages/restaurant/restaurantCreate.tsx'
 import Table from './pages/table/table.tsx'
+import TableCreate from './pages/table/tableCreate.tsx'
 import DiningSession from './pages/table/diningSession.tsx'
 
 
@@ -40,7 +42,10 @@ createRoot(document.getElementById('root')!).render(
                                 <Route path="/menu/create" element={<CreateMenu />}/>
                                 <Route path="/menu/edit/:id" element={<CreateMenu />}/>
                                 <Route path="/restaurant" element={<Restaurant />} />
+                                <Route path="/restaurant/create" element={<RestaurantCreate />} />
+                                <Route path="/restaurant/edit/:id" element={<RestaurantCreate />} />
                                 <Route path="/table" element={<Table />}/>
+                                <Route path="/table/create" element={<TableCreate />} />
                                 <Route path="/dining-sessions" element={<DiningSession />}/>
                                 
                             </Route>

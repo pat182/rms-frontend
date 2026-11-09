@@ -28,3 +28,14 @@ export async function getRestaurants(
         },
     });
 }
+
+export async function getRestoById(restoId: number): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurants/${restoId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-RESTAURANT-ID' : localStorage.getItem('selectedRestaurantId') ?? ''
+        },
+    });
+}

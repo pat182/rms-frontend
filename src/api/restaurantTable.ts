@@ -90,3 +90,17 @@ export async function getRestaurantTables(
     });
 }
 
+export async function createRestaurantTable(
+    payload: { table_name: string; capacity: number; is_active: boolean },
+): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurant-table`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
+        body: JSON.stringify(payload),
+    });
+}

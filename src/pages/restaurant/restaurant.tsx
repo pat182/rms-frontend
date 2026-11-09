@@ -11,7 +11,7 @@ export default function Restaurant(){
         restaurants,
         expandedIds,
         setExpandedIds,
-
+        
     } = useRestoDefault();
     // console.log(restaurants)
     return (
@@ -29,7 +29,7 @@ export default function Restaurant(){
 
                 <button
                     type="button"
-                    onClick={ () => {navigate('/menu/create')} }
+                    onClick={() => navigate('/restaurant/create')}
                     className="cursor-pointer self-start rounded-xl bg-[#6495ED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
                 >
                     + Add Restaurants
@@ -87,7 +87,15 @@ export default function Restaurant(){
                             const expanded = expandedIds.includes(resto.id);
                             return (
                                 <div key={resto.id}
-                                    onClick={() => console.log("test")}
+                                    role="link"
+                                    tabIndex={0}
+                                    onClick={() => navigate(`/restaurant/edit/${resto.id}`)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            navigate(`/restaurant/edit/${resto.id}`);
+                                        }
+                                    }}
                                     className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/60">
                                     <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6495ED] via-blue-[#6495ED]  to-cyan-300" />
                                     <span
@@ -121,21 +129,23 @@ export default function Restaurant(){
                                                     {resto.address}
                                                 </span>
                                                 {resto.address.length > 100 && (  
-                                                    <span
-                                                        tabIndex={0}
-                                                        onClick={() => {
-                                                            console.log(expanded)                         
-                                                            setExpandedIds(prev =>
-                                                                prev.includes(resto.id)
-                                                                    ? prev.filter(id => id !== resto.id)
-                                                                    : [...prev, resto.id]
-                                                            );
-                                                        }}
-                                                        className="mt-1 cursor-pointer text-[10px] font-medium text-blue-500 hover:text-blue-700"
-                                                    >
-                                                        {expanded ? "Show less" : "Show more"}
-                                                    </span>
-                                                )}
+                                                        <button
+                                                            type="button"
+                                                            aria-expanded={expanded}
+                                                            onKeyDown={(event) => event.stopPropagation()}
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setExpandedIds(prev =>
+                                                                    prev.includes(resto.id)
+                                                                        ? prev.filter(id => id !== resto.id)
+                                                                        : [...prev, resto.id]
+                                                                );
+                                                            }}
+                                                            className="mt-1 cursor-pointer text-[10px] font-medium text-blue-500 hover:text-blue-700"
+                                                        >
+                                                            {expanded ? "Show less" : "Show more"}
+                                                        </button>
+                                                    )}
                                             </div>
                                         </div>
                                         <div className="flex justify-between gap-4">
