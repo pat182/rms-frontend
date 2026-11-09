@@ -46,6 +46,7 @@ createRoot(document.getElementById('root')!).render(
                                 <Route path="/restaurant/edit/:id" element={<RestaurantCreate />} />
                                 <Route path="/table" element={<Table />}/>
                                 <Route path="/table/create" element={<TableCreate />} />
+                                <Route path="/table/edit/:id" element={<TableCreate />} />
                                 <Route path="/dining-sessions" element={<DiningSession />}/>
                                 
                             </Route>

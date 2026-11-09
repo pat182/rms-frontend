@@ -6,7 +6,8 @@ import type {RestaurantTableActionProps } from "../../types/restaurant.ts";
 export default function RestaurantTableActions({
     table,
     onViewQr,
-    onEdit
+    onEdit,
+    onDelete
 }: RestaurantTableActionProps) {
     return (
         <ActionMenu
@@ -15,13 +16,13 @@ export default function RestaurantTableActions({
             actions={[
                 { label: "View Qr", icon: Eye, onSelect: onViewQr },
                 { label: "Edit", icon: Pencil, onSelect: onEdit },
-                // {
-                //     label: "Delete",
-                //     icon: Trash2,
-                //     onSelect: onDelete,
-                //     variant: "danger",
-                //     separatorBefore: true,
-                // },
+                {
+                    label: "Delete",
+                    icon: Trash2,
+                    onSelect: onDelete,
+                    variant: "danger",
+                    separatorBefore: true,
+                },
             ]}
         />
     );

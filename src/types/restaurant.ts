@@ -51,7 +51,7 @@ export type RestaurantTableActionProps = {
     onViewQr: (table: RestaurantTable) => void;
     // onView: (table: RestaurantTable) => void;
     onEdit: (table: RestaurantTable) => void;
-    // onDelete: (table: RestaurantTable) => void;
+    onDelete: (table: RestaurantTable) => void;
 };
 
 export type RestaurantFormData = Omit<Restuarant, "id" | "country"> & {
@@ -62,5 +62,11 @@ export type TableDraft = {
     id: number;
     table_name: string;
     capacity: string;
+    is_active: boolean;
+};
+
+export type CreateRestaurantTablePayload = {
+    table_name: string;
+    capacity: number;
     is_active: boolean;
 };

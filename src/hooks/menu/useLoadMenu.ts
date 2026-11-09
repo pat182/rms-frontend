@@ -1,22 +1,8 @@
 
 import { useEffect } from "react";
-import type { Dispatch, SetStateAction } from "react";
 
-import type { MenuItem, Category } from "../../types/menu";
+import type { UseLoadMenuParams } from "../../types/menu";
 import { getMenuById } from "../../api/menu";
-
-type UseLoadMenuParams = {
-    isEditing: boolean;
-    menuId: number | null;
-    setMenuName: Dispatch<SetStateAction<string>>;
-    setDescription: Dispatch<SetStateAction<string>>;
-    setIsActive: Dispatch<SetStateAction<boolean>>;
-    resetLoadedEntities: (
-        menuItems: MenuItem[],
-        categories: Category[]
-    ) => void;
-    showToast: (message: string, type: "success" | "error") => void;
-};
 
 export default function useLoadMenu({
     isEditing,

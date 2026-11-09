@@ -1,6 +1,6 @@
 import { apiFetch } from './fetchWrapper';
 import { API_URL } from '../config';
-import { GetDiningSessionParams } from '../types/restaurant.ts';
+import { CreateRestaurantTablePayload, GetDiningSessionParams } from '../types/restaurant.ts';
 import { GetQueryParams } from '../types/global.ts';
 
 
@@ -63,7 +63,7 @@ export async function updateDiningSessionStatus(
 export async function getRestaurantTables(
     {
         page = 1,
-        page_size = 25,
+        page_size = 5,
         sort_by = "created_at",
         sort_order = "desc",
         search,
@@ -91,7 +91,7 @@ export async function getRestaurantTables(
 }
 
 export async function createRestaurantTable(
-    payload: { table_name: string; capacity: number; is_active: boolean },
+    payload: CreateRestaurantTablePayload[],
 ): Promise<Response> {
     return apiFetch(`${API_URL}/restaurant-table`, {
         method: 'POST',
@@ -102,5 +102,43 @@ export async function createRestaurantTable(
             'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
         },
         body: JSON.stringify(payload),
+    });
+}
+
+export async function getRestaurantTableById(tableId: number): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurant-table/${tableId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
+    });
+}
+
+export async function updateRestaurantTable(
+    tableId: number,
+    payload: CreateRestaurantTablePayload,
+): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurant-table/${tableId}`, {
+        method: 'PATCH',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function deleteRestaurantTable(tableId: number): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurant-table/${tableId}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
     });
 }
