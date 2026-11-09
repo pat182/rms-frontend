@@ -167,11 +167,15 @@ export default function TableCreate() {
             );
             navigate("/table");
         } catch (submitError) {
-            setError(
-                submitError instanceof Error
-                    ? submitError.message
-                    : "Unable to create the table."
-            );
+            const message = submitError instanceof Error
+                ? submitError.message
+                : "Unable to create the table.";
+
+            if (message.toLowerCase().includes("one or more table names already exist")) {
+                showToast(message, "error");
+            } else {
+                setError(message);
+            }
         } finally {
             setIsSaving(false);
         }
