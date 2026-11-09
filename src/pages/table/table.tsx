@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import QRCode from "qrcode";
+import { useNavigate } from "react-router-dom";
 import { getRestaurantTables } from "../../api/restaurantTable.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
 import type { RestaurantTable } from "../../types/restaurant.ts";
@@ -11,14 +12,21 @@ import { TableLoader } from "../../components/globals/tableLoader.tsx";
 import RestaurantTableActions from "../../components/restaurantTable/restaurantTableAction.tsx";
 import { CUSTOMER_APP } from '../../config'
 import { useToast } from "../../components/globals/toastContext.tsx";
+import { useRestaurant } from "../../components/globals/restaurantContext.tsx";
 
 export default function Table() {
+    const navigate = useNavigate();
     const [tables, setTables] = useState<RestaurantTable[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
     const { showToast } = useToast();
+    const { selectedRestaurantId } = useRestaurant();
+
+    const handleEdit = (table: RestaurantTable) => {
+        console.log(table);
+    }
 
     const handleViewQr = (table: RestaurantTable) => {
         if (!CUSTOMER_APP) {
@@ -121,7 +129,7 @@ export default function Table() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [selectedRestaurantId]);
 
     return (
         <main className="p-6">
@@ -135,6 +143,13 @@ export default function Table() {
                         Manage/check your restaurant tables and their statuses.
                     </p>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => navigate("/table/create")}
+                    className="cursor-pointer self-start rounded-xl bg-[#6495ED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
+                >
+                    + Add Table
+                </button>
 
             </div>
 
@@ -221,6 +236,7 @@ export default function Table() {
                                                 <RestaurantTableActions
                                                     table={table}
                                                     onViewQr={handleViewQr}
+                                                    onEdit={handleEdit}
                                                 />
                                             </td>
                                         </tr>
