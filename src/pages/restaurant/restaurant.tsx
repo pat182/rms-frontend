@@ -1,6 +1,7 @@
 // import { useNavigate } from 'react-router-dom'
 import useRestoDefault from "../../hooks/restaurant/useRestoDefault.ts"
-import { AlertCircle, Store } from "lucide-react"; 
+import { Store } from "lucide-react";
+import ErrorDisplay from "../../components/globals/errorDisplay.tsx";
 
 
 export default function Restaurant(){
@@ -70,18 +71,11 @@ export default function Restaurant(){
                             </div>
                         ))
                     ) : error ? (
-                        <div
-                            role="alert"
-                            className="col-span-full flex items-start gap-4 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-800 shadow-sm"
-                        >
-                            <div className="rounded-xl bg-white p-2 text-rose-600 shadow-sm">
-                                <AlertCircle aria-hidden="true" className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <h2 className="font-semibold">{error}</h2>
-                                <p className="mt-1 text-sm text-rose-700">{error}</p>
-                            </div>
-                        </div>
+                        <ErrorDisplay
+                            title="Unable to load restaurants"
+                            message={error}
+                            className="col-span-full"
+                        />
                     ) : (
                         restaurants.map((resto) =>  {
                             const expanded = expandedIds.includes(resto.id);

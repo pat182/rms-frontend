@@ -70,3 +70,11 @@ export type CreateRestaurantTablePayload = {
     capacity: number;
     is_active: boolean;
 };
+export type DiningSessionCardProps = {
+    sessions: DiningSession[];
+    updatingSessionId: number | null;
+    onUpdateStatus: (
+        session: DiningSession,
+        status: "verified" | "closed"
+    ) => void;
+};
