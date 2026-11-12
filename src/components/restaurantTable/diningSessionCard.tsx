@@ -124,7 +124,7 @@ export default function DiningSessionCard({
                             <button
                                 type="button"
                                 onClick={() => setSelectedSession(session)}
-                                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#6495ED] px-3 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#6495ED]/25 transition hover:bg-blue-600"
                             >
                                 <ClipboardList aria-hidden="true" size={16} />
                                 View Orders
