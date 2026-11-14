@@ -7,10 +7,3 @@ export function TableLoader() {
         </div>
     );
 }
-// export function Test() {
-//     return (
-//         <div className="flex justify-center">
-//             <h1>Test Loader</h1>
-//         </div>
-//     );
-// }
