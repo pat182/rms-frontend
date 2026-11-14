@@ -20,7 +20,6 @@ export default function OrdersModal({ session, onClose }: OrdersModalProps) {
             try {
                 setIsLoading(true);
                 setErrorMessage(null);
-                console.log(session)
                 const response = await getSessionOrder(session.session_token);
                 if (!response.ok) {
                     throw new Error(await getApiErrorMessage(response));
@@ -133,7 +132,6 @@ export default function OrdersModal({ session, onClose }: OrdersModalProps) {
                 ) : (
                     <div className="space-y-4 pb-1">
                         {orders.map((order) => {
-                            console.log(order);
                             return (
                                 <article key={`${order.id}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50 transition duration-200 hover:border-blue-200 hover:shadow-md">
                                 <details className="group">
