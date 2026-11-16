@@ -7,6 +7,7 @@ import ErrorDisplay from "../../components/globals/errorDisplay.tsx";
 export default function Restaurant(){
     const {
         navigate,
+        openRestaurant,
         loading,
         error,
         restaurants,
@@ -83,11 +84,11 @@ export default function Restaurant(){
                                 <div key={resto.id}
                                     role="link"
                                     tabIndex={0}
-                                    onClick={() => navigate(`/restaurant/edit/${resto.id}`)}
+                                    onClick={() => openRestaurant(resto.id)}
                                     onKeyDown={(event) => {
                                         if (event.key === "Enter" || event.key === " ") {
                                             event.preventDefault();
-                                            navigate(`/restaurant/edit/${resto.id}`);
+                                            openRestaurant(resto.id);
                                         }
                                     }}
                                     className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/60">

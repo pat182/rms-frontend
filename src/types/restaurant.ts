@@ -7,6 +7,7 @@ export type RestaurantContextType = {
 
 export type Restuarant = {
     id: number
+    country_id: number | null
     restaurant_name : string
     is_active : boolean
     address : string,
@@ -14,6 +15,12 @@ export type Restuarant = {
     contact_number : string
     country : Country
 }
+
+export type RestaurantFormData = Omit<Restuarant, "id" | "country"> & {
+    country_id: number | null;
+    country: Restuarant["country"] | null;
+};
+
 export type DiningSession = {
     id: number;
     restaurant_table_id?: number;
@@ -45,17 +52,12 @@ export interface GetDiningSessionParams extends GetQueryParams {
     started_to?: string;
 }
 
-
 export type RestaurantTableActionProps = {
     table: RestaurantTable;
     onViewQr: (table: RestaurantTable) => void;
     // onView: (table: RestaurantTable) => void;
     onEdit: (table: RestaurantTable) => void;
     onDelete: (table: RestaurantTable) => void;
-};
-
-export type RestaurantFormData = Omit<Restuarant, "id" | "country"> & {
-    country: Restuarant["country"] | null;
 };
 
 export type TableDraft = {
@@ -70,6 +72,7 @@ export type CreateRestaurantTablePayload = {
     capacity: number;
     is_active: boolean;
 };
+
 export type DiningSessionCardProps = {
     sessions: DiningSession[];
     updatingSessionId: number | null;
