@@ -1,10 +1,10 @@
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect,useState } from "react";
 import { ChevronDown, ClipboardList, X } from "lucide-react";
 import { OrderData, OrderItem, OrdersModalProps } from "../../types/order.ts";
 import { getSessionOrder } from "../../api/customerOrder.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
-import { getOrderStatusClass} from "../../utils/helper.ts";
+import { formatNumber, getOrderStatusClass, parseMoneyValue } from "../../utils/helper.ts";
 import { TableLoader } from "../globals/tableLoader.tsx";
 
 
@@ -12,6 +12,11 @@ export default function OrdersModal({ session, onClose }: OrdersModalProps) {
     const [orders, setOrders] = useState<OrderData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const orderTotal = orders.reduce((sum, order) => {
+        const orderAmount = parseMoneyValue(order.subtotal);
+        return sum + orderAmount;
+    }, 0);
 
     useEffect(() => {
         let isMounted = true;
@@ -198,6 +203,10 @@ export default function OrdersModal({ session, onClose }: OrdersModalProps) {
                                 </article>
                             )
                         })}
+                        <div className="mt-4 flex items-center justify-between rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-700 to-sky-600 px-4 py-3 text-white shadow-sm sm:px-5">
+                            <span className="text-sm font-medium uppercase tracking-[0.12em] text-blue-100">Orders Total</span>
+                            <span className="text-lg font-bold tabular-nums">{formatNumber(orderTotal)}</span>
+                        </div>
                     </div>
                 )}
                 </div>

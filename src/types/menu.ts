@@ -52,6 +52,7 @@ export type UseLoadMenuParams = {
     setMenuName: Dispatch<SetStateAction<string>>;
     setDescription: Dispatch<SetStateAction<string>>;
     setIsActive: Dispatch<SetStateAction<boolean>>;
+    setIsLoadingMenu: Dispatch<SetStateAction<boolean>>;
     resetLoadedEntities: (
         menuItems: MenuItem[],
         categories: Category[]

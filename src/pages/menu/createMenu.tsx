@@ -1,5 +1,6 @@
 import MenuItemFields from "../../components/menu/menuItemFields";
 import CategoryFields from "../../components/menu/menuCategoryForm";
+import { TableLoader } from "../../components/globals/tableLoader";
 import useMenuForm  from "../../hooks/menu/useMenuForm";
 
 export default function CreateMenu() {
@@ -13,6 +14,7 @@ export default function CreateMenu() {
         isActive,
         setIsActive,
         isSaving,
+        isLoadingMenu,
         menuItems,
         categories,
         handleSave,
@@ -39,6 +41,14 @@ export default function CreateMenu() {
         handleSubcategoryMenuItemImageSelect,
         handleDeleteExistingImage
     } = useMenuForm();
+
+    if (isLoadingMenu) {
+        return (
+            <main className="flex min-h-[60vh] items-center justify-center p-6">
+                <TableLoader />
+            </main>
+        );
+    }
 
     return (
         <main className="p-6">

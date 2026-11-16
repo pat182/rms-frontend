@@ -10,15 +10,21 @@ export default function useLoadMenu({
     setMenuName,
     setDescription,
     setIsActive,
+    setIsLoadingMenu,
     resetLoadedEntities,
     showToast,
 }: UseLoadMenuParams) {
     useEffect(() => {
-        if (!isEditing || !menuId) return;
+        if (!isEditing || !menuId) {
+            setIsLoadingMenu(false);
+            return;
+        }
 
         let cancelled = false;
 
         const fetchMenu = async () => {
+            setIsLoadingMenu(true);
+
             try {
                 const response = await getMenuById(menuId);
 
@@ -44,6 +50,10 @@ export default function useLoadMenu({
                     console.error("Failed to load menu:", error);
                     showToast("Failed to load menu.", "error");
                 }
+            } finally {
+                if (!cancelled) {
+                    setIsLoadingMenu(false);
+                }
             }
         };
 
@@ -58,6 +68,7 @@ export default function useLoadMenu({
         setMenuName,
         setDescription,
         setIsActive,
+        setIsLoadingMenu,
         resetLoadedEntities,
         showToast,
     ]);

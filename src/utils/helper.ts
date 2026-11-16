@@ -17,6 +17,22 @@ export function sanitizeContactNumber(contactNumber: string): string {
         .join("");
 }
 
+export function parseMoneyValue(value: number | string | undefined): number {
+    if (value === undefined || value === null || value === "") {
+        return 0;
+    }
+
+    const numericValue = Number(String(value).replace(/[^0-9.-]+/g, ""));
+    return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+export function formatNumber(value: number): string {
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(value);
+}
+
 export function getOrderStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
         case "pending":

@@ -41,6 +41,7 @@ export default function useMenuForm() {
     const [description, setDescription] = useState("");
     const [isActive, setIsActive] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingMenu, setIsLoadingMenu] = useState(isEditing);
     
     const {
         menuItems,
@@ -93,6 +94,7 @@ export default function useMenuForm() {
         setMenuName,
         setDescription,
         setIsActive,
+        setIsLoadingMenu,
         resetLoadedEntities,
         showToast,
     });
@@ -282,6 +284,7 @@ export default function useMenuForm() {
         isActive,
         setIsActive,
         isSaving,
+        isLoadingMenu,
         isEditing,
 
         menuItems,
