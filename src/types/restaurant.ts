@@ -4,6 +4,23 @@ export type RestaurantContextType = {
     selectedRestaurantId: number | null;
     setSelectedRestaurantId: (id: number) => void;
 };
+export type RestaurantOperatingHours = {
+    id: number
+    configuration_id: number
+    day_of_week: number
+    opening_time: string | null
+    closing_time: string | null
+    is_closed: boolean
+}
+
+export type RestaurantConfiguration = {
+    id: number
+    restaurant_id: number
+    is_24_hours: boolean
+    created_at: string
+    updated_at: string
+    operating_hours: RestaurantOperatingHours[]
+}
 
 export type Restuarant = {
     id: number
@@ -14,6 +31,7 @@ export type Restuarant = {
     email : string,
     contact_number : string
     country : Country
+    configuration: RestaurantConfiguration | null
 }
 
 export type RestaurantFormData = Omit<Restuarant, "id" | "country"> & {

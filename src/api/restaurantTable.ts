@@ -80,7 +80,7 @@ export async function getRestaurantTables(
     if (sort_order) params.set('sort_order', sort_order);
     if (search) params.set('search', search);
 
-    return apiFetch(`${API_URL}/restaurant-table?${params.toString()}`, {
+    return apiFetch(`${API_URL}/restaurant-table?${params.toString()}&dashboard=true`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
