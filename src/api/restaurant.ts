@@ -1,6 +1,7 @@
 import { apiFetch } from './fetchWrapper';
 import { API_URL } from '../config';
 import { type GetQueryParams } from '../types/global.ts';
+import type { RestaurantFormData } from '../types/restaurant.ts';
 
 export async function getRestaurants(
     {
@@ -39,3 +40,20 @@ export async function getRestoById(restoId: number): Promise<Response> {
         },
     });
 }
+
+export async function updateRestaurantApi(
+    payload: RestaurantFormData,
+): Promise<Response> {
+    return apiFetch(`${API_URL}/restaurants`, {
+        method: 'PUT',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+            'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+        },
+        body: JSON.stringify(payload),
+    });
+}
+
+

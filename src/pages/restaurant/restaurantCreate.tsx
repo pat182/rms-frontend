@@ -1,9 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import { useParams,useNavigate } from "react-router-dom";
-import { getRestoById } from "../../api/restaurant.ts";
+import { getRestoById, updateRestaurantApi } from "../../api/restaurant.ts";
 import type { RestaurantFormData, Restuarant, } from "../../types/restaurant.ts";
 import { useRestaurant } from "../../components/globals/restaurantContext";
+import { useToast } from "../../components/globals/toastContext.tsx";
+import { validateRestaurantUpdate } from "../../components/restaurant/validations/updateRestaurantValidation.ts";
+import { sanitizeContactNumber } from "../../utils/helper.ts";
 
 
 const emptyRestaurant: RestaurantFormData = {
@@ -13,6 +16,7 @@ const emptyRestaurant: RestaurantFormData = {
     email: "",
     contact_number: "",
     country: null,
+    country_id: null
 };
 
 export default function RestaurantCreate() {
@@ -22,9 +26,8 @@ export default function RestaurantCreate() {
     const [restaurant, setRestaurant] = useState<RestaurantFormData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [saveError, setSaveError] = useState("");
     const { selectedRestaurantId } = useRestaurant();
-
+    const { showToast } = useToast();
 
     useEffect(() => {
         let cancelled = false;
@@ -89,13 +92,62 @@ export default function RestaurantCreate() {
         setRestaurant((current) => current ? { ...current, [key]: value } : current);
     }
 
-    function handleSave(event: FormEvent<HTMLFormElement>) {
+    async function handleSave(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setSaveError(
-            isCreating
-                ? "Restaurant creation is not available because no create API is configured."
-                : "Saving restaurant changes is not available because no update API is configured."
-        );
+        if (restaurant == null){
+            showToast(
+                isCreating ? "Unable to add restaurant" : "Unable to update restaurant",
+                "error"
+            );
+            return;
+        }
+        try{
+            if(isCreating){
+                showToast(
+                    "Restaurant creation is not available because no create API is configured.",
+                    "error"
+                );
+            }else{
+                const validationError = validateRestaurantUpdate(restaurant);
+                if (validationError) {
+                    showToast(validationError, "error");
+                    return;
+                }
+               
+                const payload = {
+                        email: restaurant.email,
+                        restaurant_name: restaurant.restaurant_name.trim(),
+                        contact_number: restaurant.contact_number,
+                        address: restaurant.address,
+                        is_active: restaurant.is_active ?? false,
+                        country : null,
+                        country_id : 1
+                };
+
+                const response = await updateRestaurantApi(payload)
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showToast(
+                        data.data.detail,
+                        "error"
+                    );
+                }
+                showToast(
+                    "Restaurant succesfully updated",
+                    "success"
+                );
+            }
+        }catch (error) {
+            showToast(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to update restaurant.",
+                "error"
+            );
+        }
+        
+        
     }
 
     return (
@@ -133,6 +185,7 @@ export default function RestaurantCreate() {
                 <form
                     onSubmit={handleSave}
                     className="space-y-6"
+                    noValidate
                 >
                     <section className="space-y-5 rounded-xl border border-slate-200 bg-white p-6">
                         <div>
@@ -189,7 +242,7 @@ export default function RestaurantCreate() {
                                     id="restaurantContact"
                                     type="tel"
                                     value={restaurant.contact_number}
-                                    onChange={(event) => updateRestaurant("contact_number", event.target.value)}
+                                    onChange={(event) => updateRestaurant("contact_number", sanitizeContactNumber(event.target.value))}
                                     required
                                     className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-[#6495ED] focus:ring-2 focus:ring-[#6495ED]"
                                 />
@@ -216,11 +269,6 @@ export default function RestaurantCreate() {
                             <span>{restaurant.is_active ? "Active" : "Inactive"} restaurant</span>
                         </div>
                     </section>
-                    {saveError && (
-                        <p role="alert" className="text-sm text-rose-700">
-                            {saveError}
-                        </p>
-                    )}
                     <div className="flex justify-end">
                         <button
                             type="submit"

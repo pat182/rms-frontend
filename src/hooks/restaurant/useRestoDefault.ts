@@ -2,13 +2,22 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {getRestaurants} from "../../api/restaurant.ts"
 import { type Restuarant } from '../../types/restaurant.ts';
+import { useRestaurant } from '../../components/globals/restaurantContext.tsx';
 
 export default function useRestoDefault(){
     const navigate = useNavigate()
+    const { setSelectedRestaurantId } = useRestaurant();
     const [loading,setLoading] = useState(true)
     const [restaurants,setRestaurants] = useState<Restuarant[]>([])
     const [error,setError] = useState('')
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
+
+    
+
+    function openRestaurant(restaurantId: number) {
+        setSelectedRestaurantId(restaurantId);
+        navigate(`/restaurant/edit/${restaurantId}`);
+    }
 
     useEffect(()=>{
         let cancelled = false;
@@ -42,6 +51,7 @@ export default function useRestoDefault(){
     
     return { 
         navigate,
+        openRestaurant,
         loading,
         restaurants,
         error,

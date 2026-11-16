@@ -1,3 +1,22 @@
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CONTACT_NUMBER_CHARACTER_REGEX = /^[+\d\s().-]$/;
+
+export function isValidEmail(email: string): boolean {
+    return EMAIL_REGEX.test(email.trim());
+}
+
+export function isValidContactNumberFormat(contactNumber: string): boolean {
+    return Array.from(contactNumber.trim()).every((character) =>
+        CONTACT_NUMBER_CHARACTER_REGEX.test(character),
+    );
+}
+
+export function sanitizeContactNumber(contactNumber: string): string {
+    return Array.from(contactNumber)
+        .filter((character) => CONTACT_NUMBER_CHARACTER_REGEX.test(character))
+        .join("");
+}
+
 export function getOrderStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
         case "pending":
