@@ -21,6 +21,7 @@ import { OrderDateFilter } from "../types/dashboard";
 
 import TableOverview from "../components/dashboard/tablesComponent";
 import RecentOrders from "../components/dashboard/ordersComponent";
+import { TableLoader } from "../components/globals/tableLoader";
 
 import { getChartOrders } from "../api/dashboard";
 import { toLocalISO } from "../utils/helper";
@@ -34,6 +35,7 @@ interface OrderChartItem {
 
 export default function Dashboard() {
     const { selectedRestaurantId } = useRestaurant();
+
     const [totalOrders, setTotalOrders] = useState(0);
     const [chartData, setChartData] = useState<OrderChartItem[]>([]);
 
@@ -49,6 +51,38 @@ export default function Dashboard() {
     const [isOrderActivityOpen, setIsOrderActivityOpen] =
         useState(true);
 
+    // Format UTC chart hours using the browser's local timezone.
+    const formatChartTime = (time: string) => {
+        const match = time.match(/^(\d{1,2})\s*(AM|PM)$/i);
+
+        if (!match) return time;
+
+        let hour = Number(match[1]);
+        const period = match[2].toUpperCase();
+
+        if (period === "PM" && hour !== 12) {
+            hour += 12;
+        } else if (period === "AM" && hour === 12) {
+            hour = 0;
+        }
+
+        const now = new Date();
+
+        const utcDate = new Date(
+            Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate(),
+                hour,
+            ),
+        );
+
+        return utcDate.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    };
+
     // Get date range based on the selected filter
     const getOrderDateRange = () => {
         const now = new Date();
@@ -63,6 +97,14 @@ export default function Dashboard() {
 
             from = new Date(`${orderDateFrom}T00:00:00`);
             to = new Date(`${orderDateTo}T23:59:59.999`);
+
+            if (
+                Number.isNaN(from.getTime()) ||
+                Number.isNaN(to.getTime()) ||
+                from > to
+            ) {
+                return null;
+            }
         } else {
             from = new Date(now);
 
@@ -300,9 +342,7 @@ export default function Dashboard() {
                                 <div className="relative h-72 w-full">
                                     {isChartLoading ? (
                                         <div className="flex h-full items-center justify-center">
-                                            <p className="text-sm text-slate-400">
-                                                Loading order activity...
-                                            </p>
+                                            <TableLoader />
                                         </div>
                                     ) : chartError ? (
                                         <div className="flex h-full items-center justify-center">
@@ -338,6 +378,7 @@ export default function Dashboard() {
 
                                                 <XAxis
                                                     dataKey="time"
+                                                    tickFormatter={formatChartTime}
                                                     axisLine={false}
                                                     tickLine={false}
                                                     tick={{
@@ -357,6 +398,9 @@ export default function Dashboard() {
                                                 />
 
                                                 <Tooltip
+                                                    labelFormatter={(value) =>
+                                                        formatChartTime(String(value))
+                                                    }
                                                     cursor={{
                                                         fill: "#eff6ff",
                                                     }}
