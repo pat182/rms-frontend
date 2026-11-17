@@ -10,7 +10,8 @@ import type {
 import { useRestaurant } from "../../components/globals/restaurantContext";
 import { useToast } from "../../components/globals/toastContext.tsx";
 import { validateRestaurantUpdate } from "../../components/restaurant/validations/updateRestaurantValidation.ts";
-import { sanitizeContactNumber } from "../../utils/helper.ts";
+import { days, sanitizeContactNumber } from "../../utils/helper.ts";
+
 
 const emptyRestaurant: RestaurantFormData = {
     restaurant_name: "",
@@ -22,16 +23,6 @@ const emptyRestaurant: RestaurantFormData = {
     country_id: null,
     configuration: null,
 };
-
-const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-];
 
 export default function RestaurantCreate() {
     const { id } = useParams();
@@ -160,7 +151,7 @@ export default function RestaurantCreate() {
             return;
         }
 
-        // try {
+        try {
             if (isCreating) {
                 showToast(
                     "Restaurant creation is not available because no create API is configured.",
@@ -187,26 +178,26 @@ export default function RestaurantCreate() {
                 configuration: restaurant.configuration,
             };
             console.log(payload)
-            // const response = await updateRestaurantApi(payload);
-            // const data = await response.json();
+            const response = await updateRestaurantApi(payload);
+            const data = await response.json();
 
-            // if (!response.ok) {
-            //     showToast(
-            //         data?.data?.detail ?? "Failed to update restaurant.",
-            //         "error"
-            //     );
-            //     return;
-            // }
+            if (!response.ok) {
+                showToast(
+                    data?.data?.detail ?? "Failed to update restaurant.",
+                    "error"
+                );
+                return;
+            }
 
             showToast("Restaurant successfully updated", "success");
-        // } catch (error) {
-        //     showToast(
-        //         error instanceof Error
-        //             ? error.message
-        //             : "Failed to update restaurant.",
-        //         "error"
-        //     );
-        // }
+        } catch (error) {
+            showToast(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to update restaurant.",
+                "error"
+            );
+        }
     }
 
     return (
@@ -460,11 +451,15 @@ export default function RestaurantCreate() {
 
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div>
-                                                            <label className="mb-1 block text-xs text-slate-500">
+                                                            <label
+                                                                htmlFor={`opening-time-${hours.id}`}
+                                                                className="mb-1 block text-xs text-slate-500"
+                                                            >
                                                                 Opening Time
                                                             </label>
 
                                                             <input
+                                                                id={`opening-time-${hours.id}`}
                                                                 type="time"
                                                                 value={hours.opening_time ?? ""}
                                                                 onChange={(event) =>
@@ -474,16 +469,21 @@ export default function RestaurantCreate() {
                                                                         event.target.value
                                                                     )
                                                                 }
-                                                                className="w-full cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-400 focus:border-[#6495ED]"
+                                                                disabled={hours.is_closed}
+                                                                className="restaurant-time-input w-full cursor-pointer scheme-light rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-400 focus:border-[#6495ED] focus:outline-none focus:ring-2 focus:ring-[#6495ED]/30 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                                                             />
                                                         </div>
 
                                                         <div>
-                                                            <label className="mb-1 block text-xs text-slate-500">
+                                                            <label
+                                                                htmlFor={`closing-time-${hours.id}`}
+                                                                className="mb-1 block text-xs text-slate-500"
+                                                            >
                                                                 Closing Time
                                                             </label>
 
                                                             <input
+                                                                id={`closing-time-${hours.id}`}
                                                                 type="time"
                                                                 value={hours.closing_time ?? ""}
                                                                 onChange={(event) =>
@@ -493,7 +493,8 @@ export default function RestaurantCreate() {
                                                                         event.target.value
                                                                     )
                                                                 }
-                                                                className="w-full cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-400 focus:border-[#6495ED]"
+                                                                disabled={hours.is_closed}
+                                                                className="restaurant-time-input w-full cursor-pointer scheme-light rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm transition-colors hover:border-slate-400 focus:border-[#6495ED] focus:outline-none focus:ring-2 focus:ring-[#6495ED]/30 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                                                             />
                                                         </div>
                                                     </div>
