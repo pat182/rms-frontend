@@ -1,5 +1,18 @@
+import { OrderDateFilter } from "../types/dashboard";
+import { InfiniteScrollOptions } from "../types/global";
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONTACT_NUMBER_CHARACTER_REGEX = /^[+\d\s().-]$/;
+
+export const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+];
 
 export function isValidEmail(email: string): boolean {
     return EMAIL_REGEX.test(email.trim());
@@ -44,5 +57,44 @@ export function getOrderStatusClass(status: string): string {
             return "bg-emerald-100 text-emerald-700";
         default:
             return "bg-rose-100 text-rose-700";
+    }
+}
+
+
+export function toLocalISO(date: Date): string {
+    const offset = -date.getTimezoneOffset();
+    const sign = offset >= 0 ? "+" : "-";
+    const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
+    const minutes = String(Math.abs(offset) % 60).padStart(2, "0");
+
+    const localDate = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    const localTime = [
+        String(date.getHours()).padStart(2, "0"),
+        String(date.getMinutes()).padStart(2, "0"),
+        String(date.getSeconds()).padStart(2, "0"),
+    ].join(":");
+
+    return `${localDate}T${localTime}${sign}${hours}:${minutes}`;
+}
+
+export function handleInfiniteScroll({
+    element,
+    loading,
+    hasMore,
+    onLoadMore,
+    threshold = 100,
+}: InfiniteScrollOptions): void {
+    const { scrollTop, scrollHeight, clientHeight } = element;
+
+    const isNearBottom =
+        scrollHeight - scrollTop - clientHeight < threshold;
+
+    if (isNearBottom && !loading && hasMore) {
+        onLoadMore();
     }
 }

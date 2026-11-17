@@ -99,3 +99,11 @@ export type TablePaginationProps = {
     itemLabel: string;
     onPageChange: (page: number) => void;
 };
+
+export type InfiniteScrollOptions = {
+    element: HTMLElement;
+    loading: boolean;
+    hasMore: boolean;
+    onLoadMore: () => void;
+    threshold?: number;
+}

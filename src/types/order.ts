@@ -17,13 +17,20 @@ export type OrderItem = {
 };
 
 export type OrderData = {
-    id?: number | string;
-    order_id?: number | string;
-    session_token?: string;
+    id: number | string;
+    order_id: number | string;
+    session_token: string;
     status: string;
-    created_at?: string;
+    created_at: string;
     total_amount?: number | string;
-    subtotal?: number | string;
+    subtotal: number | string;
     amount?: number | string;
     items: OrderItem[];
 };
+
+export type OrderWithSession = OrderData & {
+    dining_session: DiningSession
+}
+
+
+ 
