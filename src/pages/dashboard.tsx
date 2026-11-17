@@ -33,6 +33,38 @@ interface OrderChartItem {
     orders: number;
 }
 
+// Convert a label such as "9 AM" into a 24-hour value.
+const getHourFromLabel = (value: string): number | null => {
+    const match = value.match(/^(\d{1,2})\s*(AM|PM)$/i);
+
+    if (!match) return null;
+
+    let hour = Number(match[1]);
+    const period = match[2].toUpperCase();
+
+    if (period === "PM" && hour !== 12) {
+        hour += 12;
+    } else if (period === "AM" && hour === 12) {
+        hour = 0;
+    }
+
+    return hour;
+};
+
+// Convert a UTC hour into the browser's local hour.
+const getLocalHour = (utcHour: number): number => {
+    const now = new Date();
+
+    return new Date(
+        Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            utcHour,
+        ),
+    ).getHours();
+};
+
 export default function Dashboard() {
     const { selectedRestaurantId } = useRestaurant();
 
@@ -51,37 +83,28 @@ export default function Dashboard() {
     const [isOrderActivityOpen, setIsOrderActivityOpen] =
         useState(true);
 
-    // Format UTC chart hours using the browser's local timezone.
-    const formatChartTime = (time: string) => {
-        const match = time.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    // Move order counts from UTC hours to browser-local hours.
+    // Keep the original operating-hour labels unchanged.
+    const localizedChartData = chartData.map((item) => ({
+        ...item,
+        orders: 0,
+    }));
 
-        if (!match) return time;
+    chartData.forEach((item) => {
+        const utcHour = getHourFromLabel(item.time);
 
-        let hour = Number(match[1]);
-        const period = match[2].toUpperCase();
+        if (utcHour === null) return;
 
-        if (period === "PM" && hour !== 12) {
-            hour += 12;
-        } else if (period === "AM" && hour === 12) {
-            hour = 0;
-        }
+        const localHour = getLocalHour(utcHour);
 
-        const now = new Date();
-
-        const utcDate = new Date(
-            Date.UTC(
-                now.getUTCFullYear(),
-                now.getUTCMonth(),
-                now.getUTCDate(),
-                hour,
-            ),
+        const targetIndex = localizedChartData.findIndex(
+            (target) => getHourFromLabel(target.time) === localHour,
         );
 
-        return utcDate.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-        });
-    };
+        if (targetIndex !== -1) {
+            localizedChartData[targetIndex].orders += item.orders;
+        }
+    });
 
     // Get date range based on the selected filter
     const getOrderDateRange = () => {
@@ -362,7 +385,7 @@ export default function Dashboard() {
                                             height="100%"
                                         >
                                             <BarChart
-                                                data={chartData}
+                                                data={localizedChartData}
                                                 margin={{
                                                     top: 5,
                                                     right: 10,
@@ -378,7 +401,6 @@ export default function Dashboard() {
 
                                                 <XAxis
                                                     dataKey="time"
-                                                    tickFormatter={formatChartTime}
                                                     axisLine={false}
                                                     tickLine={false}
                                                     tick={{
@@ -398,9 +420,6 @@ export default function Dashboard() {
                                                 />
 
                                                 <Tooltip
-                                                    labelFormatter={(value) =>
-                                                        formatChartTime(String(value))
-                                                    }
                                                     cursor={{
                                                         fill: "#eff6ff",
                                                     }}
