@@ -11,6 +11,7 @@ import {
     OrderDateFilter,
     OrderDateRange,
     orderStatusStyles,
+    RecentOrdersProps,
 } from "../../types/dashboard";
 
 import { OrderWithSession } from "../../types/order";
@@ -21,12 +22,6 @@ import {
 
 const RECENT_ORDER_PAGE_SIZE = 4;
 
-interface RecentOrdersProps {
-    orderDateFilter: OrderDateFilter;
-    orderDateFrom: string;
-    orderDateTo: string;
-    // onTotalOrdersChange: (total: number) => void;
-}
 
 export default function RecentOrders({
     orderDateFilter,
@@ -206,7 +201,7 @@ export default function RecentOrders({
     return (
         <section
             onScroll={handleRecentOrdersScroll}
-            className="max-h-[500px] overflow-y-auto rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50 custom-scrollbar xl:col-span-2"
+            className="min-h-[750px] max-h-[750px] overflow-y-auto rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50 custom-scrollbar"
         >
             <div className="mb-6">
                 <h2 className="text-lg font-semibold text-slate-800">

@@ -29,6 +29,28 @@ export interface OrderDashboardParams extends GetQueryParams {
     order_at?: string;
 }
 
+export type RecentOrdersProps = {
+    orderDateFilter: OrderDateFilter;
+    orderDateFrom: string;
+    orderDateTo: string;
+    // onTotalOrdersChange: (total: number) => void;
+}
+
+export type OrderChartItem = {
+    hour: number;
+    time: string;
+    orders: number;
+}
+
+export type OrderInsights = {
+    revenue: number;
+    average_order_value: number;
+    completed: number;
+    cancelled: number;
+    pending: number;
+    preparing: number;
+}
+
 export const tableStatusStyles: Record<TableStatus, string> = {
     available: "bg-green-500",
     occupied: "bg-blue-500",
