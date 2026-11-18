@@ -82,37 +82,6 @@ export function toLocalISO(date: Date): string {
     return `${localDate}T${localTime}${sign}${hours}:${minutes}`;
 }
 
-// Convert a label such as "9 AM" into a 24-hour value.
-export function getHourFromLabel(value: string): number | null {
-    const match = value.match(/^(\d{1,2})\s*(AM|PM)$/i);
-
-    if (!match) return null;
-
-    let hour = Number(match[1]);
-    const period = match[2].toUpperCase();
-
-    if (period === "PM" && hour !== 12) {
-        hour += 12;
-    } else if (period === "AM" && hour === 12) {
-        hour = 0;
-    }
-
-    return hour;
-}
-
-// Convert a UTC hour into the browser's local hour.
-export function getLocalHour(utcHour: number): number {
-    const now = new Date();
-
-    return new Date(
-        Date.UTC(
-            now.getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate(),
-            utcHour,
-        ),
-    ).getHours();
-}
 
 export function handleInfiniteScroll({
     element,
