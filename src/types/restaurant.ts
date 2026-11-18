@@ -53,6 +53,7 @@ export type DiningSession = {
 
 export type RestaurantTable = {
     id: number;
+    table_id: number;
     restaurant_id: number;
     table_name: string;
     capacity: number;

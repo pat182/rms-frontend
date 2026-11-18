@@ -12,10 +12,22 @@ import {
     tableStatusStylesCard,
     type TableStatus,
 } from "../../types/dashboard";
-import { RestaurantTable } from "../../types/restaurant";
+import { DiningSession, RestaurantTable } from "../../types/restaurant";
 import { useRestaurant } from "../globals/restaurantContext";
 
 const TABLE_PAGE_SIZE = 50;
+
+const sortTables = (tables: RestaurantTable[]) => {
+    return [...tables].sort((a, b) => {
+        const getPriority = (table: RestaurantTable) => {
+            if (!table.is_active) return 2;
+            if (table.dining_sessions.length > 0) return 1;
+            return 0;
+        };
+
+        return getPriority(a) - getPriority(b);
+    });
+};
 
 export default function TableOverview() {
     const navigate = useNavigate();
@@ -27,6 +39,72 @@ export default function TableOverview() {
     const [tables, setTables] = useState<RestaurantTable[]>([]);
 
     useEffect(() => {
+        const handleTableSession = (rawEvent: Event) => {
+            const event = rawEvent as CustomEvent<{
+                table_id: number;
+                session_id: number;
+                session_token: string;
+                table_name: string;
+                is_active: boolean;
+                started_at: string;
+                closed_at: string | null;
+                status: "pending" | "verified" | "closed";
+            }>;
+
+            const eventData = event.detail;
+
+            if (!eventData) return;
+
+            setTables((prev) => {
+                const updatedTables = prev.map((table) => {
+                    if (Number(table.id) !== Number(eventData.table_id)) {
+                        return table;
+                    }
+
+                    const newSession: DiningSession = {
+                        id: eventData.session_id,
+                        restaurant_table_id: eventData.table_id,
+                        session_token: eventData.session_token,
+                        started_at: eventData.started_at,
+                        closed_at: eventData.closed_at,
+                        is_active: eventData.is_active,
+                        status: eventData.status,
+                        restaurant_table: table,
+                    };
+
+                    const sessionExists = table.dining_sessions.some(
+                        (session) =>
+                            Number(session.id) === Number(newSession.id),
+                    );
+
+                    if (sessionExists) return table;
+
+                    return {
+                        ...table,
+                        dining_sessions: [
+                            ...table.dining_sessions,
+                            newSession,
+                        ],
+                    };
+                });
+
+                return sortTables(updatedTables);
+            });
+        };
+
+        window.addEventListener("dining-session-created", handleTableSession);
+
+        return () => {
+            window.removeEventListener(
+                "dining-session-created",
+                handleTableSession,
+            );
+        };
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+
         async function fetchTables() {
             setTableLoad(false);
 
@@ -43,25 +121,25 @@ export default function TableOverview() {
 
                 const result = await response.json();
 
-                const sortedTables = [...result.data].sort((a, b) => {
-                    const getPriority = (table: typeof a) => {
-                        if (!table.is_active) return 2;
-                        if (table.dining_sessions.length > 0) return 1;
-                        return 0;
-                    };
+                if (!isMounted) return;
 
-                    return getPriority(a) - getPriority(b);
-                });
-
-                setTables(sortedTables);
+                setTables(sortTables(result.data));
             } catch (fetchError) {
-                console.error(fetchError);
+                if (isMounted) {
+                    console.error(fetchError);
+                }
             } finally {
-                setTableLoad(true);
+                if (isMounted) {
+                    setTableLoad(true);
+                }
             }
         }
 
         fetchTables();
+
+        return () => {
+            isMounted = false;
+        };
     }, [selectedRestaurantId, tablePage]);
 
     return (
@@ -88,7 +166,6 @@ export default function TableOverview() {
                 </div>
 
                 <div className="flex items-center justify-between gap-4 sm:justify-end">
-                    {/* Status Legend */}
                     <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
                         {TableStatuses.map((status) => (
                             <span
@@ -111,7 +188,6 @@ export default function TableOverview() {
                 </div>
             </button>
 
-            {/* Collapsible Content */}
             {isTableExpanded && (
                 <div className="mt-2 border-t border-slate-100 pt-6">
                     {!tableLoad ? (
