@@ -1,4 +1,5 @@
 import { GetQueryParams } from "./global";
+import { OrderWithSession } from "./order";
 
 export type TableStatus = "available" | "occupied" | "inactive";
 export type OrderDateFilter = "today" | "week" | "month" | "custom";
@@ -33,6 +34,7 @@ export type RecentOrdersProps = {
     orderDateFilter: OrderDateFilter;
     orderDateFrom: string;
     orderDateTo: string;
+    newOrder: OrderWithSession | null;
     // onTotalOrdersChange: (total: number) => void;
 }
 

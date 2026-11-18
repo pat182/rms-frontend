@@ -69,31 +69,44 @@ export default function TopBar({
         }
     };
 
+
+
     useEffect(() => {
         if (selectedRestaurantId == null) return;
 
         setNotifications([]);
 
         const socket = connectAdminWebSocket(
-            // `customer_status/123123123123`,
             `admin_notification/${selectedRestaurantId}`,
             (message) => {
-                if (message.event !== "dining_session_created") return;
+                if (message.event === "dining_session_created") {
+                    window.dispatchEvent(
+                        new CustomEvent("dining-session-created", {
+                            detail: message.data,
+                        }),
+                    );
 
-                window.dispatchEvent(
-                    new CustomEvent("dining-session-created", { detail: message.data }),
-                );
-                notificationIdRef.current += 1;
+                    notificationIdRef.current += 1;
 
-                setNotifications((current) => [
-                    {
-                        id: notificationIdRef.current,
-                        title: "New dining session",
-                        content: message.data,
-                        receivedAt: new Date().toLocaleTimeString(),
-                    },
-                    ...current,
-                ]);
+                    setNotifications((current) => [
+                        {
+                            id: notificationIdRef.current,
+                            title: "New dining session",
+                            content: message.data,
+                            receivedAt: new Date().toLocaleTimeString(),
+                        },
+                        ...current,
+                    ]);
+                }
+
+                if (message.event === "order_created") {
+                    
+                    window.dispatchEvent(
+                        new CustomEvent("order-created", {
+                            detail: message.data,
+                        }),
+                    );
+                }
             },
         );
 
@@ -101,6 +114,8 @@ export default function TopBar({
             socket.close();
         };
     }, [selectedRestaurantId]);
+
+
 
     useEffect(() => {
         const handleDiningSessionStatusUpdated = (event: Event) => {
