@@ -34,6 +34,7 @@ import { getApiErrorMessage } from "../api/utils";
 
 import { useRestaurant } from "../components/globals/restaurantContext";
 import { useOrderDateRange } from "../hooks/dashboard/useOrderDateRange";
+import { useOrderCreated } from "../hooks/dashboard/useOrderCreateEvenHandler";
 
 const emptyOrderInsights: OrderInsights = {
     revenue: 0,
@@ -44,9 +45,7 @@ const emptyOrderInsights: OrderInsights = {
     preparing: 0,
 };
 
-type OrderCreatedEventDetail = {
-    order: OrderWithSession;
-};
+
 
 export default function Dashboard() {
     const { selectedRestaurantId } = useRestaurant();
@@ -79,105 +78,16 @@ export default function Dashboard() {
     );
 
     // Listen for new orders and update dashboard data locally.
-    useEffect(() => {
-        const handleOrderCreated = (rawEvent: Event) => {
-            const event =
-                rawEvent as CustomEvent<OrderCreatedEventDetail>;
+    useOrderCreated({
+        dateRange,
+        orderDateFilter,
+        totalOrders,
+        setNewOrder,
+        setTotalOrders,
+        setChartData,
+        setOrderInsights,
+    });
 
-            const order = event.detail?.order;
-
-            if (!order) return;
-
-            const orderDate = new Date(order.created_at);
-
-            if (Number.isNaN(orderDate.getTime())) return;
-
-            // Check whether the order belongs to the selected date range.
-            if (!dateRange?.order_from) return;
-
-            const rangeStart = new Date(dateRange.order_from);
-
-            if (
-                Number.isNaN(rangeStart.getTime()) ||
-                orderDate < rangeStart
-            ) {
-                return;
-            }
-
-            // Only apply an upper date boundary for custom ranges.
-            // Today, week, and month should accept newly arriving orders.
-            if (orderDateFilter === "custom") {
-                if (!dateRange.order_at) return;
-
-                const rangeEnd = new Date(dateRange.order_at);
-
-                if (
-                    Number.isNaN(rangeEnd.getTime()) ||
-                    orderDate > rangeEnd
-                ) {
-                    return;
-                }
-            }
-
-            // Pass the new order directly to Recent Orders.
-            setNewOrder(order);
-
-            const localHour = orderDate.getHours();
-            const orderSubtotal = Number(order.subtotal) || 0;
-            const orderStatus = order.status.toLowerCase();
-
-            // Update Total Orders.
-            setTotalOrders((prev) => prev + 1);
-
-            // Update the matching local-hour chart bar.
-            setChartData((prev) =>
-                prev.map((item) =>
-                    item.hour === localHour
-                        ? { ...item, orders: item.orders + 1 }
-                        : item,
-                ),
-            );
-
-            // Update Order Insights.
-            setOrderInsights((prev) => {
-                const isPending = orderStatus === "pending";
-
-                const updatedRevenue = isPending
-                    ? prev.revenue
-                    : prev.revenue + orderSubtotal;
-
-                const updatedTotalOrders = totalOrders + 1;
-
-                return {
-                    ...prev,
-                    revenue: updatedRevenue,
-                    average_order_value:
-                        updatedTotalOrders > 0
-                            ? updatedRevenue / updatedTotalOrders
-                            : 0,
-                    pending: prev.pending + (isPending ? 1 : 0),
-                    preparing:
-                        prev.preparing +
-                        (orderStatus === "preparing" ? 1 : 0),
-                    completed:
-                        prev.completed +
-                        (orderStatus === "completed" ? 1 : 0),
-                    cancelled:
-                        prev.cancelled +
-                        (orderStatus === "cancelled" ? 1 : 0),
-                };
-            });
-        };
-
-        window.addEventListener("order-created", handleOrderCreated);
-
-        return () => {
-            window.removeEventListener(
-                "order-created",
-                handleOrderCreated,
-            );
-        };
-    }, [dateRange, orderDateFilter, totalOrders]);
 
     // Fetch Order Activity chart data and insights.
     useEffect(() => {
