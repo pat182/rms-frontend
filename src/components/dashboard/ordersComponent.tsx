@@ -6,19 +6,17 @@ import { getRecentOrders } from "../../api/dashboard";
 import { getApiErrorMessage } from "../../api/utils";
 import { TableLoader } from "../globals/tableLoader";
 import { useRestaurant } from "../globals/restaurantContext";
-
 import {
-    OrderDateFilter,
-    OrderDateRange,
     orderStatusStyles,
     RecentOrdersProps,
 } from "../../types/dashboard";
 
 import { OrderWithSession } from "../../types/order";
 import {
-    toLocalISO,
     handleInfiniteScroll,
 } from "../../utils/helper";
+
+import { useOrderDateRange } from "../../hooks/dashboard/useOrderDateRange";
 
 const RECENT_ORDER_PAGE_SIZE = 4;
 
@@ -39,55 +37,13 @@ export default function RecentOrders({
 
     const isFetchingMoreOrders = useRef(false);
     const recentOrdersRequestId = useRef(0);
+    
+    const dateRange = useOrderDateRange(
+        orderDateFilter,
+        orderDateFrom,
+        orderDateTo,
+    );
 
-    const getOrderDateRange = (
-        filter: OrderDateFilter,
-        fromDate: string,
-        toDate: string,
-    ): OrderDateRange | null => {
-        if (filter === "custom") {
-            if (!fromDate || !toDate) {
-                return null;
-            }
-
-            const from = new Date(`${fromDate}T00:00:00`);
-            const to = new Date(`${toDate}T23:59:59.999`);
-
-            if (
-                Number.isNaN(from.getTime()) ||
-                Number.isNaN(to.getTime()) ||
-                from > to
-            ) {
-                return null;
-            }
-
-            return {
-                order_from: toLocalISO(from),
-                order_at: toLocalISO(to),
-            };
-        }
-
-        const now = new Date();
-        const from = new Date(now);
-
-        if (filter === "today") {
-            from.setHours(0, 0, 0, 0);
-        } else if (filter === "week") {
-            const day = from.getDay();
-            const daysSinceMonday = (day + 6) % 7;
-
-            from.setDate(from.getDate() - daysSinceMonday);
-            from.setHours(0, 0, 0, 0);
-        } else if (filter === "month") {
-            from.setDate(1);
-            from.setHours(0, 0, 0, 0);
-        }
-
-        return {
-            order_from: toLocalISO(from),
-            order_at: toLocalISO(now),
-        };
-    };
 
     const handleRecentOrdersScroll = (
         e: React.UIEvent<HTMLElement>,
@@ -115,12 +71,6 @@ export default function RecentOrders({
             } else {
                 setLoadingMoreOrders(true);
             }
-
-            const dateRange = getOrderDateRange(
-                orderDateFilter,
-                orderDateFrom,
-                orderDateTo,
-            );
 
             if (!dateRange) {
                 if (requestId === recentOrdersRequestId.current) {
@@ -242,9 +192,11 @@ export default function RecentOrders({
                         >
                             <div className="min-w-0 flex-1 space-y-1.5">
                                 <p className="text-sm font-semibold text-slate-800">
-                                    Order #{order.id}
+                                     Session #{order.dining_session.id} . Order #{order.id} 
                                 </p>
-
+                                {/* <p className="text-sm font-semibold text-slate-800">
+                                    
+                                </p> */}
                                 <p className="text-sm text-slate-600">
                                     {order.dining_session.restaurant_table.table_name}
                                 </p>
@@ -265,22 +217,21 @@ export default function RecentOrders({
                                     </span>
                                 </div>
 
-                                <p className="text-xs text-slate-500">
-                                    {order.items?.length ?? 0} items
-                                </p>
                             </div>
 
                             <div className="shrink-0 space-y-2 text-right">
                                 <p className="text-sm font-semibold text-slate-800">
-                                    ₱
                                     {Number(order.subtotal).toLocaleString(
                                         "en-PH",
                                         {
                                             minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
                                         },
                                     )}
                                 </p>
-
+                                <p className="text-xs text-slate-500">
+                                    {order.items?.length ?? 0} {(order.items?.length ?? 0) === 1 ? "item" : "items"}
+                                </p>
                                 <span
                                     className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                                         orderStatusStyles[order.status]
