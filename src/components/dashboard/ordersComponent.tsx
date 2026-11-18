@@ -6,26 +6,24 @@ import { getRecentOrders } from "../../api/dashboard";
 import { getApiErrorMessage } from "../../api/utils";
 import { TableLoader } from "../globals/tableLoader";
 import { useRestaurant } from "../globals/restaurantContext";
+
 import {
     orderStatusStyles,
     RecentOrdersProps,
 } from "../../types/dashboard";
 
 import { OrderWithSession } from "../../types/order";
-import {
-    handleInfiniteScroll,
-} from "../../utils/helper";
+import { handleInfiniteScroll } from "../../utils/helper";
 
 import { useOrderDateRange } from "../../hooks/dashboard/useOrderDateRange";
 
-const RECENT_ORDER_PAGE_SIZE = 4;
-
+const RECENT_ORDER_PAGE_SIZE = 10;
 
 export default function RecentOrders({
     orderDateFilter,
     orderDateFrom,
     orderDateTo,
-    // onTotalOrdersChange,
+    newOrder,
 }: RecentOrdersProps) {
     const { selectedRestaurantId } = useRestaurant();
 
@@ -37,13 +35,15 @@ export default function RecentOrders({
 
     const isFetchingMoreOrders = useRef(false);
     const recentOrdersRequestId = useRef(0);
-    
+
+    // FIX: OrderWithSession.id accepts string | number.
+    const processedOrderIds = useRef<Set<string | number>>(new Set());
+
     const dateRange = useOrderDateRange(
         orderDateFilter,
         orderDateFrom,
         orderDateTo,
     );
-
 
     const handleRecentOrdersScroll = (
         e: React.UIEvent<HTMLElement>,
@@ -60,6 +60,30 @@ export default function RecentOrders({
         });
     };
 
+    // Reset pagination when the selected restaurant or date range changes.
+    useEffect(() => {
+        isFetchingMoreOrders.current = false;
+        setLoadingMoreOrders(false);
+        setRecentOrderPage(1);
+    }, [selectedRestaurantId, dateRange]);
+
+    // Add a newly received order to the top of the list.
+    useEffect(() => {
+        if (!newOrder) return;
+
+        if (processedOrderIds.current.has(newOrder.id)) return;
+
+        processedOrderIds.current.add(newOrder.id);
+
+        setRecentOrders((prev) => [
+            newOrder,
+            ...prev.filter((order) => order.id !== newOrder.id),
+        ]);
+
+        setTotalOrders((prev) => prev + 1);
+    }, [newOrder]);
+
+    // Fetch recent orders.
     useEffect(() => {
         const requestId = ++recentOrdersRequestId.current;
 
@@ -76,7 +100,7 @@ export default function RecentOrders({
                 if (requestId === recentOrdersRequestId.current) {
                     setRecentOrders([]);
                     setTotalOrders(0);
-                    // onTotalOrdersChange(0);
+                    processedOrderIds.current.clear();
                     setRecentOrderLoad(true);
                     setLoadingMoreOrders(false);
                     isFetchingMoreOrders.current = false;
@@ -86,13 +110,6 @@ export default function RecentOrders({
             }
 
             try {
-                // Temporary delay for loader testing
-                // await new Promise((resolve) =>
-                //     setTimeout(resolve, 2000),
-                // );
-
-                if (requestId !== recentOrdersRequestId.current) return;
-
                 const response = await getRecentOrders({
                     page: recentOrderPage,
                     page_size: RECENT_ORDER_PAGE_SIZE,
@@ -112,14 +129,27 @@ export default function RecentOrders({
 
                 const newOrders: OrderWithSession[] = result.data ?? [];
 
+                // Track IDs returned by the API to avoid inserting them twice.
+                newOrders.forEach((order) => {
+                    processedOrderIds.current.add(order.id);
+                });
+
                 setRecentOrders((prev) =>
                     isFirstPage
                         ? newOrders
-                        : [...prev, ...newOrders],
+                        : [
+                              ...prev,
+                              ...newOrders.filter(
+                                  (order) =>
+                                      !prev.some(
+                                          (existingOrder) =>
+                                              existingOrder.id === order.id,
+                                      ),
+                              ),
+                          ],
                 );
 
                 setTotalOrders(result.total_items);
-                // onTotalOrdersChange(result.total_items);
 
             } catch (error) {
                 if (requestId === recentOrdersRequestId.current) {
@@ -142,10 +172,7 @@ export default function RecentOrders({
     }, [
         selectedRestaurantId,
         recentOrderPage,
-        orderDateFilter,
-        orderDateFrom,
-        orderDateTo,
-        // onTotalOrdersChange,
+        dateRange,
     ]);
 
     return (
@@ -192,11 +219,9 @@ export default function RecentOrders({
                         >
                             <div className="min-w-0 flex-1 space-y-1.5">
                                 <p className="text-sm font-semibold text-slate-800">
-                                     Session #{order.dining_session.id} . Order #{order.id} 
+                                    Session #{order.dining_session.id} . Order #{order.id}
                                 </p>
-                                {/* <p className="text-sm font-semibold text-slate-800">
-                                    
-                                </p> */}
+
                                 <p className="text-sm text-slate-600">
                                     {order.dining_session.restaurant_table.table_name}
                                 </p>
@@ -216,7 +241,6 @@ export default function RecentOrders({
                                         ).toLocaleString()}
                                     </span>
                                 </div>
-
                             </div>
 
                             <div className="shrink-0 space-y-2 text-right">
@@ -229,9 +253,14 @@ export default function RecentOrders({
                                         },
                                     )}
                                 </p>
+
                                 <p className="text-xs text-slate-500">
-                                    {order.items?.length ?? 0} {(order.items?.length ?? 0) === 1 ? "item" : "items"}
+                                    {order.items?.length ?? 0}{" "}
+                                    {(order.items?.length ?? 0) === 1
+                                        ? "item"
+                                        : "items"}
                                 </p>
+
                                 <span
                                     className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                                         orderStatusStyles[order.status]

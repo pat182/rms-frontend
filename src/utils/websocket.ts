@@ -15,7 +15,7 @@ export function connectAdminWebSocket(
 
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data);
-    console.log("Received:", message);
+    // console.log("Received:", message);
     onMessage(message);
   };
 

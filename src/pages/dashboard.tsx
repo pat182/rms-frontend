@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import {
@@ -24,6 +23,8 @@ import {
     OrderInsights,
 } from "../types/dashboard";
 
+import { OrderWithSession } from "../types/order";
+
 import TableOverview from "../components/dashboard/tablesComponent";
 import RecentOrders from "../components/dashboard/ordersComponent";
 import { TableLoader } from "../components/globals/tableLoader";
@@ -41,6 +42,10 @@ const emptyOrderInsights: OrderInsights = {
     cancelled: 0,
     pending: 0,
     preparing: 0,
+};
+
+type OrderCreatedEventDetail = {
+    order: OrderWithSession;
 };
 
 export default function Dashboard() {
@@ -63,12 +68,116 @@ export default function Dashboard() {
     const [isOrderActivityOpen, setIsOrderActivityOpen] =
         useState(true);
 
+    const [newOrder, setNewOrder] =
+        useState<OrderWithSession | null>(null);
+
     // Get date range based on the selected filter.
     const dateRange = useOrderDateRange(
         orderDateFilter,
         orderDateFrom,
         orderDateTo,
     );
+
+    // Listen for new orders and update dashboard data locally.
+    useEffect(() => {
+        const handleOrderCreated = (rawEvent: Event) => {
+            const event =
+                rawEvent as CustomEvent<OrderCreatedEventDetail>;
+
+            const order = event.detail?.order;
+
+            if (!order) return;
+
+            const orderDate = new Date(order.created_at);
+
+            if (Number.isNaN(orderDate.getTime())) return;
+
+            // Check whether the order belongs to the selected date range.
+            if (!dateRange?.order_from) return;
+
+            const rangeStart = new Date(dateRange.order_from);
+
+            if (
+                Number.isNaN(rangeStart.getTime()) ||
+                orderDate < rangeStart
+            ) {
+                return;
+            }
+
+            // Only apply an upper date boundary for custom ranges.
+            // Today, week, and month should accept newly arriving orders.
+            if (orderDateFilter === "custom") {
+                if (!dateRange.order_at) return;
+
+                const rangeEnd = new Date(dateRange.order_at);
+
+                if (
+                    Number.isNaN(rangeEnd.getTime()) ||
+                    orderDate > rangeEnd
+                ) {
+                    return;
+                }
+            }
+
+            // Pass the new order directly to Recent Orders.
+            setNewOrder(order);
+
+            const localHour = orderDate.getHours();
+            const orderSubtotal = Number(order.subtotal) || 0;
+            const orderStatus = order.status.toLowerCase();
+
+            // Update Total Orders.
+            setTotalOrders((prev) => prev + 1);
+
+            // Update the matching local-hour chart bar.
+            setChartData((prev) =>
+                prev.map((item) =>
+                    item.hour === localHour
+                        ? { ...item, orders: item.orders + 1 }
+                        : item,
+                ),
+            );
+
+            // Update Order Insights.
+            setOrderInsights((prev) => {
+                const isPending = orderStatus === "pending";
+
+                const updatedRevenue = isPending
+                    ? prev.revenue
+                    : prev.revenue + orderSubtotal;
+
+                const updatedTotalOrders = totalOrders + 1;
+
+                return {
+                    ...prev,
+                    revenue: updatedRevenue,
+                    average_order_value:
+                        updatedTotalOrders > 0
+                            ? updatedRevenue / updatedTotalOrders
+                            : 0,
+                    pending: prev.pending + (isPending ? 1 : 0),
+                    preparing:
+                        prev.preparing +
+                        (orderStatus === "preparing" ? 1 : 0),
+                    completed:
+                        prev.completed +
+                        (orderStatus === "completed" ? 1 : 0),
+                    cancelled:
+                        prev.cancelled +
+                        (orderStatus === "cancelled" ? 1 : 0),
+                };
+            });
+        };
+
+        window.addEventListener("order-created", handleOrderCreated);
+
+        return () => {
+            window.removeEventListener(
+                "order-created",
+                handleOrderCreated,
+            );
+        };
+    }, [dateRange, orderDateFilter, totalOrders]);
 
     // Fetch Order Activity chart data and insights.
     useEffect(() => {
@@ -89,11 +198,6 @@ export default function Dashboard() {
 
             try {
                 const response = await getChartOrders(dateRange);
-
-                // Temporary delay for loader testing
-                // await new Promise((resolve) =>
-                //     setTimeout(resolve, 5000),
-                // );
 
                 if (!response.ok) {
                     throw new Error(
@@ -133,6 +237,7 @@ export default function Dashboard() {
                 );
 
                 setChartData(formattedChartData);
+
                 setTotalOrders(result.data?.total_orders ?? 0);
 
                 setOrderInsights({
@@ -196,7 +301,6 @@ export default function Dashboard() {
 
             {/* Order Activity */}
             <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50">
-
                 {/* Collapsible Header */}
                 <button
                     type="button"
@@ -226,10 +330,8 @@ export default function Dashboard() {
                 {/* Collapsible Content */}
                 {isOrderActivityOpen && (
                     <div className="border-t border-slate-100 p-5">
-
                         {/* Total Orders + Shared Date Filter */}
                         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-
                             {/* Total Orders - Far Left */}
                             <div className="inline-flex min-w-44 flex-col rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
                                 <p className="text-sm font-medium text-slate-500">
@@ -301,14 +403,10 @@ export default function Dashboard() {
 
                         {/* Order Activity Content */}
                         <div className="space-y-6">
-
-                            
-
                             {/* Recent Orders + Order Insights */}
                             <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-
                                 {/* Order Insights */}
-                                <section className="min-w-0 xl:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50">
+                                <section className="min-w-0 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50 xl:col-span-2">
                                     <div className="mb-5">
                                         <h3 className="text-lg font-bold text-slate-800">
                                             Order Insights
@@ -325,7 +423,6 @@ export default function Dashboard() {
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-
                                             {/* Revenue */}
                                             <div className="rounded-xl bg-blue-50/60 p-4">
                                                 <p className="text-sm font-medium text-slate-500">
@@ -429,13 +526,12 @@ export default function Dashboard() {
                                     orderDateFilter={orderDateFilter}
                                     orderDateFrom={orderDateFrom}
                                     orderDateTo={orderDateTo}
+                                    newOrder={newOrder}
                                 />
-
                             </div>
 
                             {/* Order Overview - Full Width */}
                             <section className="w-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50">
-
                                 {/* Chart Error */}
                                 {chartError && (
                                     <p className="mb-4 text-sm text-red-500">
