@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import {
@@ -17,7 +18,11 @@ import {
     Clock3,
 } from "lucide-react";
 
-import { OrderChartItem, OrderDateFilter, OrderInsights } from "../types/dashboard";
+import {
+    OrderChartItem,
+    OrderDateFilter,
+    OrderInsights,
+} from "../types/dashboard";
 
 import TableOverview from "../components/dashboard/tablesComponent";
 import RecentOrders from "../components/dashboard/ordersComponent";
@@ -25,9 +30,9 @@ import { TableLoader } from "../components/globals/tableLoader";
 
 import { getChartOrders } from "../api/dashboard";
 import { getApiErrorMessage } from "../api/utils";
-import { toLocalISO } from "../utils/helper";
 
 import { useRestaurant } from "../components/globals/restaurantContext";
+import { useOrderDateRange } from "../hooks/dashboard/useOrderDateRange";
 
 const emptyOrderInsights: OrderInsights = {
     revenue: 0,
@@ -35,7 +40,7 @@ const emptyOrderInsights: OrderInsights = {
     completed: 0,
     cancelled: 0,
     pending: 0,
-    preparing: 0
+    preparing: 0,
 };
 
 export default function Dashboard() {
@@ -59,60 +64,17 @@ export default function Dashboard() {
         useState(true);
 
     // Get date range based on the selected filter.
-    const getOrderDateRange = () => {
-        const now = new Date();
-
-        let from: Date;
-        let to = now;
-
-        if (orderDateFilter === "custom") {
-            if (!orderDateFrom || !orderDateTo) {
-                return null;
-            }
-
-            from = new Date(`${orderDateFrom}T00:00:00`);
-            to = new Date(`${orderDateTo}T23:59:59.999`);
-
-            if (
-                Number.isNaN(from.getTime()) ||
-                Number.isNaN(to.getTime()) ||
-                from > to
-            ) {
-                return null;
-            }
-        } else {
-            from = new Date(now);
-
-            if (orderDateFilter === "today") {
-                from.setHours(0, 0, 0, 0);
-            }
-
-            if (orderDateFilter === "week") {
-                const day = (now.getDay() + 6) % 7;
-
-                from.setDate(now.getDate() - day);
-                from.setHours(0, 0, 0, 0);
-            }
-
-            if (orderDateFilter === "month") {
-                from.setDate(1);
-                from.setHours(0, 0, 0, 0);
-            }
-        }
-
-        return {
-            order_from: toLocalISO(from),
-            order_at: toLocalISO(to),
-        };
-    };
+    const dateRange = useOrderDateRange(
+        orderDateFilter,
+        orderDateFrom,
+        orderDateTo,
+    );
 
     // Fetch Order Activity chart data and insights.
     useEffect(() => {
         let cancelled = false;
 
         const fetchChartData = async () => {
-            const dateRange = getOrderDateRange();
-
             if (!dateRange) {
                 setChartData([]);
                 setTotalOrders(0);
@@ -127,6 +89,7 @@ export default function Dashboard() {
 
             try {
                 const response = await getChartOrders(dateRange);
+
                 // Temporary delay for loader testing
                 // await new Promise((resolve) =>
                 //     setTimeout(resolve, 5000),
@@ -146,7 +109,12 @@ export default function Dashboard() {
                     { length: 24 },
                     (_, hour) => ({
                         hour,
-                        time: new Date(2000, 0, 1, hour).toLocaleTimeString([], {
+                        time: new Date(
+                            2000,
+                            0,
+                            1,
+                            hour,
+                        ).toLocaleTimeString([], {
                             hour: "numeric",
                             hour12: true,
                         }),
@@ -154,20 +122,23 @@ export default function Dashboard() {
                     }),
                 );
 
-                (result.data?.chart ?? []).forEach((item: OrderChartItem) => {
-                    const localHour = new Date(
-                        Date.UTC(2000, 0, 1, item.hour),
-                    ).getHours();
+                (result.data?.chart ?? []).forEach(
+                    (item: OrderChartItem) => {
+                        const localHour = new Date(
+                            Date.UTC(2000, 0, 1, item.hour),
+                        ).getHours();
 
-                    formattedChartData[localHour].orders += item.orders;
-                });
+                        formattedChartData[localHour].orders += item.orders;
+                    },
+                );
 
                 setChartData(formattedChartData);
                 setTotalOrders(result.data?.total_orders ?? 0);
 
                 setOrderInsights({
                     revenue: result.data?.insights?.revenue ?? 0,
-                    average_order_value: result.data?.insights?.average_order_value ?? 0,
+                    average_order_value:
+                        result.data?.insights?.average_order_value ?? 0,
                     completed: result.data?.insights?.completed ?? 0,
                     cancelled: result.data?.insights?.cancelled ?? 0,
                     pending: result.data?.insights?.pending ?? 0,
@@ -177,7 +148,10 @@ export default function Dashboard() {
             } catch (error) {
                 if (cancelled) return;
 
-                console.error("Failed to fetch order chart:", error);
+                console.error(
+                    "Failed to fetch order chart:",
+                    error,
+                );
 
                 setChartData([]);
                 setTotalOrders(0);
@@ -200,12 +174,7 @@ export default function Dashboard() {
         return () => {
             cancelled = true;
         };
-    }, [
-        selectedRestaurantId,
-        orderDateFilter,
-        orderDateFrom,
-        orderDateTo,
-    ]);
+    }, [selectedRestaurantId, dateRange]);
 
     return (
         <main className="p-6">
@@ -333,6 +302,137 @@ export default function Dashboard() {
                         {/* Order Activity Content */}
                         <div className="space-y-6">
 
+                            
+
+                            {/* Recent Orders + Order Insights */}
+                            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+                                {/* Order Insights */}
+                                <section className="min-w-0 xl:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50">
+                                    <div className="mb-5">
+                                        <h3 className="text-lg font-bold text-slate-800">
+                                            Order Insights
+                                        </h3>
+
+                                        <p className="text-sm text-slate-500">
+                                            Summary for the selected period.
+                                        </p>
+                                    </div>
+
+                                    {isChartLoading ? (
+                                        <div className="flex min-h-[400px] items-center justify-center">
+                                            <TableLoader />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+
+                                            {/* Revenue */}
+                                            <div className="rounded-xl bg-blue-50/60 p-4">
+                                                <p className="text-sm font-medium text-slate-500">
+                                                    Revenue
+                                                </p>
+
+                                                <p className="mt-1 text-2xl font-bold tabular-nums text-[#6495ED]">
+                                                    {orderInsights.revenue.toLocaleString("en-PH", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })}
+                                                </p>
+                                            </div>
+
+                                            {/* Average Order Value */}
+                                            <div className="rounded-xl border border-slate-100 p-4">
+                                                <p className="text-sm font-medium text-slate-500">
+                                                    Average Order Value
+                                                </p>
+
+                                                <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
+                                                    {orderInsights.average_order_value.toLocaleString("en-PH", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })}
+                                                </p>
+                                            </div>
+
+                                            {/* Completed Orders */}
+                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        Completed Orders
+                                                    </p>
+
+                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
+                                                        {orderInsights.completed}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                                                    <span className="text-lg font-bold">✓</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Preparing Orders */}
+                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        Preparing Orders
+                                                    </p>
+
+                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
+                                                        {orderInsights.preparing ?? 0}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                                                    <Clock3 className="h-5 w-5" />
+                                                </div>
+                                            </div>
+
+                                            {/* Pending Orders */}
+                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        Pending Orders
+                                                    </p>
+
+                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
+                                                        {orderInsights.pending ?? 0}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                                                    <Clock3 className="h-5 w-5" />
+                                                </div>
+                                            </div>
+
+                                            {/* Cancelled Orders */}
+                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+                                                <div>
+                                                    <p className="text-sm font-medium text-slate-500">
+                                                        Cancelled Orders
+                                                    </p>
+
+                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
+                                                        {orderInsights.cancelled}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">
+                                                    <span className="text-lg font-bold">×</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+
+                                <RecentOrders
+                                    orderDateFilter={orderDateFilter}
+                                    orderDateFrom={orderDateFrom}
+                                    orderDateTo={orderDateTo}
+                                />
+
+                            </div>
+
                             {/* Order Overview - Full Width */}
                             <section className="w-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50">
 
@@ -424,135 +524,6 @@ export default function Dashboard() {
                                     )}
                                 </div>
                             </section>
-
-                            {/* Recent Orders + Order Insights */}
-                            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-
-                                {/* Order Insights */}
-                                <section className="min-w-0 xl:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/50">
-                                    <div className="mb-5">
-                                        <h3 className="text-lg font-bold text-slate-800">
-                                            Order Insights
-                                        </h3>
-
-                                        <p className="text-sm text-slate-500">
-                                            Summary for the selected period.
-                                        </p>
-                                    </div>
-
-                                    {isChartLoading ? (
-                                        <div className="flex min-h-[400px] items-center justify-center">
-                                            <TableLoader />
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-
-                                            {/* Revenue */}
-                                            <div className="rounded-xl bg-blue-50/60 p-4">
-                                                <p className="text-sm font-medium text-slate-500">
-                                                    Revenue
-                                                </p>
-
-                                                <p className="mt-1 text-2xl font-bold tabular-nums text-[#6495ED]">
-                                                    {`₱${orderInsights.revenue.toLocaleString("en-PH", {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2,
-                                                    })}`}
-                                                </p>
-                                            </div>
-
-                                            {/* Average Order Value */}
-                                            <div className="rounded-xl border border-slate-100 p-4">
-                                                <p className="text-sm font-medium text-slate-500">
-                                                    Average Order Value
-                                                </p>
-
-                                                <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                    {`₱${orderInsights.average_order_value.toLocaleString("en-PH", {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2,
-                                                    })}`}
-                                                </p>
-                                            </div>
-
-                                            {/* Completed Orders */}
-                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-500">
-                                                        Completed Orders
-                                                    </p>
-
-                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                        {orderInsights.completed}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                                                    <span className="text-lg font-bold">✓</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Preparing Orders */}
-                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-500">
-                                                        Preparing Orders
-                                                    </p>
-
-                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                        {orderInsights.preparing ?? 0}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                                                    <Clock3 className="h-5 w-5" />
-                                                </div>
-                                            </div>
-
-                                            {/* Pending Orders */}
-                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-500">
-                                                        Pending Orders
-                                                    </p>
-
-                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                        {orderInsights.pending ?? 0}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                                                    <Clock3 className="h-5 w-5" />
-                                                </div>
-                                            </div>
-
-                                            {/* Cancelled Orders */}
-                                            <div className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-500">
-                                                        Cancelled Orders
-                                                    </p>
-
-                                                    <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                        {orderInsights.cancelled}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">
-                                                    <span className="text-lg font-bold">×</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </section>
-
-                                <RecentOrders
-                                    orderDateFilter={orderDateFilter}
-                                    orderDateFrom={orderDateFrom}
-                                    orderDateTo={orderDateTo}
-                                />
-
-                            </div>
                         </div>
                     </div>
                 )}

@@ -172,7 +172,7 @@ export default function OrdersModal({ session, onClose }: OrdersModalProps) {
                                                         <div className="min-w-0 flex-1">
                                                             <p className="truncate font-medium text-slate-800">{item.item_name}</p>
                                                             <p className="mt-1 text-xs text-slate-500">
-                                                                Qty {item.quantity}
+                                                                {item.quantity} x {item.unit_price}
                                                             </p>
                                                             {item.special_request && (
                                                                 <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-500">
