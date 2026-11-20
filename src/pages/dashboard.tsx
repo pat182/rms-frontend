@@ -17,13 +17,13 @@ import {
     Clock3,
 } from "lucide-react";
 
-import {
+import type {
     OrderChartItem,
     OrderDateFilter,
     OrderInsights,
 } from "../types/dashboard";
 
-import { OrderWithSession } from "../types/order";
+import type { OrderWithSession } from "../types/order";
 
 import TableOverview from "../components/dashboard/tablesComponent";
 import RecentOrders from "../components/dashboard/ordersComponent";
@@ -36,7 +36,7 @@ import { useRestaurant } from "../components/globals/restaurantContext";
 import { useOrderDateRange } from "../hooks/dashboard/useOrderDateRange";
 import { useOrderCreated } from "../hooks/dashboard/useOrderCreateEvenHandler";
 
-const emptyOrderInsights: OrderInsights = {
+const EMPTY_ORDER_INSIGHTS: OrderInsights = {
     revenue: 0,
     average_order_value: 0,
     completed: 0,
@@ -46,14 +46,13 @@ const emptyOrderInsights: OrderInsights = {
 };
 
 
-
 export default function Dashboard() {
     const { selectedRestaurantId } = useRestaurant();
 
     const [totalOrders, setTotalOrders] = useState(0);
     const [chartData, setChartData] = useState<OrderChartItem[]>([]);
     const [orderInsights, setOrderInsights] =
-        useState<OrderInsights>(emptyOrderInsights);
+        useState<OrderInsights>(EMPTY_ORDER_INSIGHTS);
 
     const [isChartLoading, setIsChartLoading] = useState(false);
     const [chartError, setChartError] = useState("");
@@ -97,7 +96,7 @@ export default function Dashboard() {
             if (!dateRange) {
                 setChartData([]);
                 setTotalOrders(0);
-                setOrderInsights(emptyOrderInsights);
+                setOrderInsights(EMPTY_ORDER_INSIGHTS);
                 setChartError("");
                 setIsChartLoading(false);
                 return;
@@ -170,7 +169,7 @@ export default function Dashboard() {
 
                 setChartData([]);
                 setTotalOrders(0);
-                setOrderInsights(emptyOrderInsights);
+                setOrderInsights(EMPTY_ORDER_INSIGHTS);
 
                 setChartError(
                     error instanceof Error

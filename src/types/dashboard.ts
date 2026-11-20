@@ -37,7 +37,9 @@ export type RecentOrdersProps = {
     newOrder: OrderWithSession | null;
     // onTotalOrdersChange: (total: number) => void;
 }
-
+// interface OrderChartProps {
+//     chartData: OrderChartItem[];
+// }
 export type OrderChartItem = {
     hour: number;
     time: string;
