@@ -18,8 +18,7 @@ export function useOrderCreated({
 }: UseOrderCreatedProps) {
     useEffect(() => {
         const handleOrderCreated = (rawEvent: Event) => {
-            const event =
-                rawEvent as CustomEvent<OrderCreatedEventDetail>;
+            const event = rawEvent as CustomEvent<OrderCreatedEventDetail>;
 
             const order = event.detail?.order;
 
@@ -54,6 +53,8 @@ export function useOrderCreated({
             }
 
             setNewOrder(order);
+            console.log("ORDER CREATED EVENT:", order);
+
 
             const localHour = orderDate.getHours();
             const orderSubtotal = Number(order.subtotal) || 0;
@@ -92,13 +93,12 @@ export function useOrderCreated({
                     completed:
                         prev.completed +
                         (orderStatus === "completed" ? 1 : 0),
-                    cancelled:
-                        prev.cancelled +
-                        (orderStatus === "cancelled" ? 1 : 0),
+                    canceled:
+                        prev.canceled +
+                        (orderStatus === "canceled" ? 1 : 0),
                 };
             });
         };
-
         window.addEventListener("order-created", handleOrderCreated);
 
         return () => {

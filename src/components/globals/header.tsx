@@ -107,6 +107,16 @@ export default function TopBar({
                         }),
                     );
                 }
+                
+                if (message.event === "order_updated") {
+                    
+                    window.dispatchEvent(
+                        new CustomEvent("order-updated", {
+                            detail: message.data,
+                        }),
+                    );
+                }
+
             },
         );
 
