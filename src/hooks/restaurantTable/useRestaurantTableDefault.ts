@@ -32,6 +32,7 @@ export default function useRestaurantTableDefault() {
                 const response = await getRestaurantTables({
                     page,
                     page_size: TABLE_PAGE_SIZE,
+                    dashboard: false,
                 });
                 if (!response.ok) {
                     throw new Error(await getApiErrorMessage(response));
