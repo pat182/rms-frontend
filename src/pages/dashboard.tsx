@@ -35,12 +35,13 @@ import { getApiErrorMessage } from "../api/utils";
 import { useRestaurant } from "../components/globals/restaurantContext";
 import { useOrderDateRange } from "../hooks/dashboard/useOrderDateRange";
 import { useOrderCreated } from "../hooks/dashboard/useOrderCreateEvenHandler";
+import { useOrderUpdated } from "../hooks/dashboard/useOrderUpdateEventHandler";
 
 const EMPTY_ORDER_INSIGHTS: OrderInsights = {
     revenue: 0,
     average_order_value: 0,
     completed: 0,
-    cancelled: 0,
+    canceled: 0,
     pending: 0,
     preparing: 0,
 };
@@ -66,8 +67,9 @@ export default function Dashboard() {
     const [isOrderActivityOpen, setIsOrderActivityOpen] =
         useState(true);
 
-    const [newOrder, setNewOrder] =
-        useState<OrderWithSession | null>(null);
+    const [newOrder, setNewOrder] = useState<OrderWithSession | null>(null);
+    const [recentOrders, setRecentOrders] = useState<OrderWithSession[]>([]);
+
 
     // Get date range based on the selected filter.
     const dateRange = useOrderDateRange(
@@ -76,20 +78,9 @@ export default function Dashboard() {
         orderDateTo,
     );
 
-    // Listen for new orders and update dashboard data locally.
-    useOrderCreated({
-        dateRange,
-        orderDateFilter,
-        totalOrders,
-        setNewOrder,
-        setTotalOrders,
-        setChartData,
-        setOrderInsights,
-    });
-
-
     // Fetch Order Activity chart data and insights.
     useEffect(() => {
+
         let cancelled = false;
 
         const fetchChartData = async () => {
@@ -115,7 +106,7 @@ export default function Dashboard() {
                 }
 
                 const result = await response.json();
-
+                // console.log(result)
                 if (cancelled) return;
 
                 const formattedChartData: OrderChartItem[] = Array.from(
@@ -154,7 +145,7 @@ export default function Dashboard() {
                     average_order_value:
                         result.data?.insights?.average_order_value ?? 0,
                     completed: result.data?.insights?.completed ?? 0,
-                    cancelled: result.data?.insights?.cancelled ?? 0,
+                    canceled: result.data?.insights?.canceled ?? 0,
                     pending: result.data?.insights?.pending ?? 0,
                     preparing: result.data?.insights?.preparing ?? 0,
                 });
@@ -190,6 +181,23 @@ export default function Dashboard() {
         };
     }, [selectedRestaurantId, dateRange]);
 
+    useOrderCreated({
+        dateRange,
+        orderDateFilter,
+        totalOrders,
+        setNewOrder,
+        setTotalOrders,
+        setChartData,
+        setOrderInsights,
+    });
+    
+    useOrderUpdated({
+        recentOrders,
+        setRecentOrders,
+        setOrderInsights,
+        totalOrders,
+    });
+    
     return (
         <main className="p-6">
             {/* Dashboard Header */}
@@ -419,7 +427,7 @@ export default function Dashboard() {
                                                     </p>
 
                                                     <p className="mt-1 text-xl font-bold tabular-nums text-slate-800">
-                                                        {orderInsights.cancelled}
+                                                        {orderInsights.canceled}
                                                     </p>
                                                 </div>
 
@@ -436,6 +444,8 @@ export default function Dashboard() {
                                     orderDateFrom={orderDateFrom}
                                     orderDateTo={orderDateTo}
                                     newOrder={newOrder}
+                                    recentOrders={recentOrders}
+                                    setRecentOrders={setRecentOrders}
                                 />
                             </div>
 

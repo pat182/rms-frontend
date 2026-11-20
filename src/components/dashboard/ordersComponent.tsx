@@ -24,11 +24,12 @@ export default function RecentOrders({
     orderDateFrom,
     orderDateTo,
     newOrder,
+    recentOrders,
+    setRecentOrders,
 }: RecentOrdersProps) {
     const { selectedRestaurantId } = useRestaurant();
 
     const [recentOrdersLoad, setRecentOrderLoad] = useState(false);
-    const [recentOrders, setRecentOrders] = useState<OrderWithSession[]>([]);
     const [recentOrderPage, setRecentOrderPage] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
     const [loadingMoreOrders, setLoadingMoreOrders] = useState(false);
@@ -36,7 +37,6 @@ export default function RecentOrders({
     const isFetchingMoreOrders = useRef(false);
     const recentOrdersRequestId = useRef(0);
 
-    // FIX: OrderWithSession.id accepts string | number.
     const processedOrderIds = useRef<Set<string | number>>(new Set());
 
     const dateRange = useOrderDateRange(
@@ -50,8 +50,7 @@ export default function RecentOrders({
     ) => {
         handleInfiniteScroll({
             element: e.currentTarget,
-            loading:
-                loadingMoreOrders || isFetchingMoreOrders.current,
+            loading: loadingMoreOrders || isFetchingMoreOrders.current,
             hasMore: recentOrders.length < totalOrders,
             onLoadMore: () => {
                 isFetchingMoreOrders.current = true;
@@ -81,12 +80,12 @@ export default function RecentOrders({
         ]);
 
         setTotalOrders((prev) => prev + 1);
-    }, [newOrder]);
+    }, [newOrder, setRecentOrders]);
 
     // Fetch recent orders.
     useEffect(() => {
         const requestId = ++recentOrdersRequestId.current;
-
+        
         async function fetchRecentOrders() {
             const isFirstPage = recentOrderPage === 1;
 
@@ -148,9 +147,9 @@ export default function RecentOrders({
                               ),
                           ],
                 );
-
+                
                 setTotalOrders(result.total_items);
-
+                // console.log(recentOrders)
             } catch (error) {
                 if (requestId === recentOrdersRequestId.current) {
                     console.error(error);
@@ -173,6 +172,7 @@ export default function RecentOrders({
         selectedRestaurantId,
         recentOrderPage,
         dateRange,
+        setRecentOrders,
     ]);
 
     return (

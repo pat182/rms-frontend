@@ -35,6 +35,10 @@ export type RecentOrdersProps = {
     orderDateFrom: string;
     orderDateTo: string;
     newOrder: OrderWithSession | null;
+    recentOrders: OrderWithSession[];
+    setRecentOrders: React.Dispatch<
+        React.SetStateAction<OrderWithSession[]>
+    >;
     // onTotalOrdersChange: (total: number) => void;
 }
 // interface OrderChartProps {
@@ -50,7 +54,7 @@ export type OrderInsights = {
     revenue: number;
     average_order_value: number;
     completed: number;
-    cancelled: number;
+    canceled: number;
     pending: number;
     preparing: number;
 }
@@ -58,6 +62,18 @@ export type OrderInsights = {
 export type OrderCreatedEventDetail = {
     order: OrderWithSession;
 };
+
+export type UserUpdatedProps = {
+    recentOrders: OrderWithSession[];
+    totalOrders: number;
+    setRecentOrders: React.Dispatch<
+        React.SetStateAction<OrderWithSession[]>
+    >;
+    setOrderInsights: React.Dispatch<
+        React.SetStateAction<OrderInsights>
+    >;
+}
+
 
 export type UseOrderCreatedProps = {
     dateRange: {
