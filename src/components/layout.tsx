@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import TopBar from './globals/header.tsx'
 import SideBar from './globals/sidebar.tsx'
+import LoadingPage from '../pages/loadingPage.tsx'
 
 export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -56,7 +58,9 @@ export default function Layout() {
                 }`}
             >
                 <div className="min-h-full p-4 md:p-6">
-                    <Outlet />
+                    <Suspense fallback={<LoadingPage />}>
+                        <Outlet />
+                    </Suspense>
                 </div>
             </main>
         </div>
