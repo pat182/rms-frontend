@@ -71,6 +71,10 @@ export interface GetDiningSessionParams extends GetQueryParams {
     started_to?: string;
 }
 
+export interface GetRetaurantTableParams extends GetQueryParams {
+    dashboard?: boolean
+}
+
 export type RestaurantTableActionProps = {
     table: RestaurantTable;
     onViewQr: (table: RestaurantTable) => void;

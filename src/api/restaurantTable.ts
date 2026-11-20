@@ -1,6 +1,6 @@
 import { apiFetch } from './fetchWrapper';
 import { API_URL } from '../config';
-import { CreateRestaurantTablePayload, GetDiningSessionParams } from '../types/restaurant.ts';
+import { CreateRestaurantTablePayload, GetDiningSessionParams, GetRetaurantTableParams } from '../types/restaurant.ts';
 import { GetQueryParams } from '../types/global.ts';
 
 
@@ -66,21 +66,23 @@ export async function getRestaurantTables(
         page_size = 5,
         sort_by = "created_at",
         sort_order = "desc",
+        dashboard = true,
         search,
-
-    }: GetQueryParams = {},
+       
+    }: GetRetaurantTableParams = {},
 ): Promise<Response> {
 
     const params = new URLSearchParams({
         page: String(page),
         page_size: String(page_size),
+        dashboard: String(dashboard)
     });
 
     if (sort_by) params.set('sort_by', sort_by);
     if (sort_order) params.set('sort_order', sort_order);
     if (search) params.set('search', search);
 
-    return apiFetch(`${API_URL}/restaurant-table?${params.toString()}&dashboard=true`, {
+    return apiFetch(`${API_URL}/restaurant-table?${params.toString()}`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json',
