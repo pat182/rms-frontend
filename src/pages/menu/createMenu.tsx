@@ -2,6 +2,7 @@ import MenuItemFields from "../../components/menu/menuItemFields";
 import CategoryFields from "../../components/menu/menuCategoryForm";
 import { TableLoader } from "../../components/globals/tableLoader";
 import useMenuForm  from "../../hooks/menu/useMenuForm";
+import { Utensils } from "lucide-react";
 
 export default function CreateMenu() {
     
@@ -52,17 +53,33 @@ export default function CreateMenu() {
 
     return (
         <main className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-slate-600">
-                    {isEditing ? "Update menu" : "Create menu"}
-                </h1>
+            <header className="relative mb-7 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-blue-100/60 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl"
+                />
 
-                <p className="mt-1 text-sm text-slate-500">
-                    {isEditing
-                        ? "Edit your restaurant menu"
-                        : "Create a new restaurant menu"}
-                </p>
-            </div>
+                <div className="relative">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                        <Utensils size={14} />
+                        Menu Management
+                    </div>
+
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                        {isEditing ? "Update Menu" : "Create Menu"}
+                    </h1>
+
+                    <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-500">
+                        {isEditing
+                            ? "Update your menu details, organize categories, and manage your menu items."
+                            : "Set up a new restaurant menu, organize your categories, and add your menu items."}
+                    </p>
+                </div>
+            </header>
 
             <form onSubmit={handleSave} noValidate className="space-y-6">
                 <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
