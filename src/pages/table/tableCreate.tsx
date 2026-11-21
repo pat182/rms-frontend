@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRef } from "react";
-import { AlertCircle, Trash2 } from "lucide-react";
+import { AlertCircle, Armchair, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     createRestaurantTable,
@@ -183,16 +183,33 @@ export default function TableCreate() {
 
     return (
         <main className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-slate-700">
-                    {isEditing ? "Edit Table" : "Create Tables"}
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
-                    {isEditing
-                        ? "Update this table's details."
-                        : "Add one or more tables to the selected restaurant."}
-                </p>
-            </div>
+            <header className="relative mb-7 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-blue-100/60 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl"
+                />
+
+                <div className="relative">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                        <Armchair size={14} />
+                        Table Management
+                    </div>
+
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                        {isEditing ? "Edit Table" : "Create Tables"}
+                    </h1>
+
+                    <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-500">
+                        {isEditing
+                            ? "Update this table's details, seating capacity, and availability."
+                            : "Add and configure tables for your restaurant, including seating capacity and availability."}
+                    </p>
+                </div>
+            </header>
 
             {isLoadingTable ? (
                 <div

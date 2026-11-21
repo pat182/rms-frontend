@@ -1,6 +1,6 @@
 // import { useNavigate } from 'react-router-dom'
 import useRestoDefault from "../../hooks/restaurant/useRestoDefault.ts"
-import { Store } from "lucide-react";
+import { Building2, Plus, Store } from "lucide-react";
 import ErrorDisplay from "../../components/globals/errorDisplay.tsx";
 
 
@@ -18,25 +18,35 @@ export default function Restaurant(){
     // console.log(restaurants)
     return (
         <main className="p-6">
-            <div className="mb-8 flex flex-col gap-5 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-800">
-                        Restaurants
-                    </h1>
+            <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7 mb-8">
+                    <div className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-blue-100/60 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl" />
+                    <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                                <Building2 size={14} />
+                                Business Management
+                            </div>
 
-                    <p className="max-w-xl text-sm leading-6 text-slate-500">
-                        Manage your restaurants and keep your business information organized.
-                    </p>
-                </div>
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                                Restaurants
+                            </h1>
 
-                <button
-                    type="button"
-                    onClick={() => navigate('/restaurant/create')}
-                    className="cursor-pointer self-start rounded-xl bg-[#6495ED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
-                >
-                    + Add Restaurants
-                </button>
-            </div>
+                            <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-500">
+                                Manage your restaurant locations and keep your business information organized.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => navigate("/restaurant/create")}
+                            className="cursor-pointer inline-flex items-center justify-center gap-2 self-start rounded-xl bg-[#6495ED] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
+                        >
+                            <Plus size={18} />
+                            Add Restaurant
+                        </button>
+                    </div>
+            </header>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {
                     loading ? (

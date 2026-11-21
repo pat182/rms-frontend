@@ -1,6 +1,6 @@
 
 import { useEffect, useState, type FormEvent } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Store } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRestoById, updateRestaurantApi } from "../../api/restaurant.ts";
 import type {
@@ -202,17 +202,33 @@ export default function RestaurantCreate() {
 
     return (
         <main className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-slate-700">
-                    {isCreating ? "Create Restaurant" : "Edit Restaurant"}
-                </h1>
+            <header className="relative mb-7 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-blue-100/60 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl"
+                />
 
-                <p className="mt-1 text-sm text-slate-500">
-                    {isCreating
-                        ? "Enter the details for your new restaurant."
-                        : "Update the restaurant information shown below."}
-                </p>
-            </div>
+                <div className="relative">
+                    <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                        <Store size={14} />
+                        Business Management
+                    </div>
+
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                        {isCreating ? "Create Restaurant" : "Edit Restaurant"}
+                    </h1>
+
+                    <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-500">
+                        {isCreating
+                            ? "Set up your restaurant profile and add the details needed to manage your business."
+                            : "Update your restaurant profile and keep your business information up to date."}
+                    </p>
+                </div>
+            </header>
 
             {loading ? (
                 <div

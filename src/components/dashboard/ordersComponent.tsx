@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { ShoppingBag } from "lucide-react";
+import { ClipboardList, ShoppingBag } from "lucide-react";
 
 import { getRecentOrders } from "../../api/dashboard";
 import { getApiErrorMessage } from "../../api/utils";
@@ -16,6 +16,8 @@ import { OrderWithSession } from "../../types/order";
 import { handleInfiniteScroll } from "../../utils/helper";
 
 import { useOrderDateRange } from "../../hooks/dashboard/useOrderDateRange";
+import OrdersModal from "../customerOrders/ordersModal.tsx";
+import { DiningSession } from "../../types/restaurant.ts";
 
 const RECENT_ORDER_PAGE_SIZE = 10;
 
@@ -28,6 +30,7 @@ export default function RecentOrders({
     setRecentOrders,
 }: RecentOrdersProps) {
     const { selectedRestaurantId } = useRestaurant();
+    const [selectedSession, setSelectedSession] = useState<DiningSession | null>(null);
 
     const [recentOrdersLoad, setRecentOrderLoad] = useState(false);
     const [recentOrderPage, setRecentOrderPage] = useState(1);
@@ -211,63 +214,75 @@ export default function RecentOrders({
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                
+                <div className="space-y-3">
                     {recentOrders.map((order) => (
                         <div
                             key={order.id}
-                            className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+                            className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300"
                         >
-                            <div className="min-w-0 flex-1 space-y-1.5">
-                                <p className="text-sm font-semibold text-slate-800">
-                                    Session #{order.dining_session.id} . Order #{order.id}
-                                </p>
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <p className="text-sm font-bold text-slate-800">
+                                            Order #{order.id}
+                                        </p>
+                                        <span className="text-xs text-slate-400">
+                                            Session #{order.dining_session.id}
+                                        </span>
+                                    </div>
 
-                                <p className="text-sm text-slate-600">
-                                    {order.dining_session.restaurant_table.table_name}
-                                </p>
+                                    <p className="mt-1 text-sm font-medium text-slate-600">
+                                        {order.dining_session.restaurant_table.table_name}
+                                    </p>
 
-                                <div className="flex flex-col gap-1 text-xs text-slate-500">
-                                    <span>
-                                        Session started:{" "}
-                                        {new Date(
-                                            order.dining_session.started_at,
-                                        ).toLocaleString()}
-                                    </span>
+                                    <div className="mt-3 space-y-1 text-xs text-slate-500">
+                                        <p>
+                                            Session started:{" "}
+                                            {new Date(
+                                                order.dining_session.started_at
+                                            ).toLocaleString()}
+                                        </p>
+                                        <p>
+                                            Order placed:{" "}
+                                            {new Date(order.created_at).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
 
-                                    <span>
-                                        Order placed:{" "}
-                                        {new Date(
-                                            order.created_at,
-                                        ).toLocaleString()}
+                                <div className="shrink-0 text-right">
+                                    <p className="text-sm font-bold text-slate-800">
+                                        ₱{Number(order.subtotal).toLocaleString("en-PH", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {order.items?.length ?? 0}{" "}
+                                        {(order.items?.length ?? 0) === 1 ? "item" : "items"}
+                                    </p>
+
+                                    <span
+                                        className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                                            orderStatusStyles[order.status]
+                                        }`}
+                                    >
+                                        {order.status}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="shrink-0 space-y-2 text-right">
-                                <p className="text-sm font-semibold text-slate-800">
-                                    {Number(order.subtotal).toLocaleString(
-                                        "en-PH",
-                                        {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        },
-                                    )}
-                                </p>
-
-                                <p className="text-xs text-slate-500">
-                                    {order.items?.length ?? 0}{" "}
-                                    {(order.items?.length ?? 0) === 1
-                                        ? "item"
-                                        : "items"}
-                                </p>
-
-                                <span
-                                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                                        orderStatusStyles[order.status]
-                                    }`}
+                            <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
+                                <button
+                                    onClick={() => setSelectedSession(order.dining_session)}
+                                    type="button"
+                                    className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-600 transition hover:border-blue-200 hover:bg-blue-100"
                                 >
-                                    {order.status}
-                                </span>
+                                    <ClipboardList aria-hidden="true" size={14} />
+                                    View Session
+                                    <span aria-hidden="true">→</span>
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -278,7 +293,14 @@ export default function RecentOrders({
                         </div>
                     )}
                 </div>
+
             )}
+        {selectedSession && (
+            <OrdersModal
+                session={selectedSession}
+                onClose={() => setSelectedSession(null)}
+            />
+        )}
         </section>
     );
 }

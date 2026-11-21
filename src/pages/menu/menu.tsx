@@ -6,6 +6,7 @@ import  useMenuDefault  from '../../hooks/menu/useMenuDefault.ts';
 
 import {TableLoader} from '../../components/globals/tableLoader.tsx';
 import TablePagination from '../../components/globals/tablePagination.tsx';
+import { Plus, Utensils } from 'lucide-react';
 
 
 export default function Menu() {
@@ -27,25 +28,36 @@ export default function Menu() {
 
     return (
         <main className="p-6">
-            <div className="mb-8 flex flex-col gap-5 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-800">
-                        Menus
-                    </h1>
+            <header className="relative mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+                <div className="pointer-events-none absolute -right-12 -top-24 h-64 w-64 rounded-full bg-blue-100/60 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl" />
 
-                    <p className="max-w-xl text-sm leading-6 text-slate-500">
-                        Manage your restaurant menus and organize your food offerings.
-                    </p>
+                <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                            <Utensils size={14} />
+                            Menu Management
+                        </div>
+
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                            Menus
+                        </h1>
+
+                        <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-500">
+                            Manage your restaurant menus and organize your food offerings.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => navigate("/menu/create")}
+                        className="cursor-pointer inline-flex items-center justify-center gap-2 self-start rounded-xl bg-[#6495ED] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
+                    >
+                        <Plus size={18} />
+                        Add Menu
+                    </button>
                 </div>
-
-                <button
-                    type="button"
-                    onClick={ () => {navigate('/menu/create')} }
-                    className="cursor-pointer self-start rounded-xl bg-[#6495ED] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md sm:self-auto"
-                >
-                    + Add Menu
-                </button>
-            </div>
+            </header>
 
             <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50">
                 <div className="overflow-x-auto">
