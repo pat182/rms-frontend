@@ -10,7 +10,7 @@ import type {
 import { useRestaurant } from "../../components/globals/restaurantContext";
 import { useToast } from "../../components/globals/toastContext.tsx";
 import { validateRestaurantUpdate } from "../../components/restaurant/validations/updateRestaurantValidation.ts";
-import { days, sanitizeContactNumber } from "../../utils/helper.ts";
+import { days, sanitizeContactNumber, updateRestaurantLocalStorage } from "../../utils/helper.ts";
 
 
 const emptyRestaurant: RestaurantFormData = {
@@ -177,7 +177,7 @@ export default function RestaurantCreate() {
                 country_id: 1,
                 configuration: restaurant.configuration,
             };
-            console.log(payload)
+            
             const response = await updateRestaurantApi(payload);
             const data = await response.json();
 
@@ -188,7 +188,7 @@ export default function RestaurantCreate() {
                 );
                 return;
             }
-
+            updateRestaurantLocalStorage(data.data)
             showToast("Restaurant successfully updated", "success");
         } catch (error) {
             showToast(
