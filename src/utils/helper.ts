@@ -1,6 +1,7 @@
 
 import { OrderDateFilter } from "../types/dashboard";
 import { InfiniteScrollOptions } from "../types/global";
+import { Restuarant } from "../types/restaurant";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONTACT_NUMBER_CHARACTER_REGEX = /^[+\d\s().-]$/;
@@ -92,10 +93,26 @@ export function handleInfiniteScroll({
 }: InfiniteScrollOptions): void {
     const { scrollTop, scrollHeight, clientHeight } = element;
 
-    const isNearBottom =
-        scrollHeight - scrollTop - clientHeight < threshold;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < threshold;
 
     if (isNearBottom && !loading && hasMore) {
         onLoadMore();
     }
+}
+
+export function updateRestaurantLocalStorage(data: Restuarant): void {
+    const userStorage = localStorage.getItem("user");
+
+    if (!userStorage) return;
+
+    const user = JSON.parse(userStorage);
+    
+    user.restaurants = user.restaurants.map((restaurant: Restuarant) =>
+        restaurant.id === data.id
+            ? { ...restaurant, ...data }
+            : restaurant
+    );
+
+    localStorage.setItem("user", JSON.stringify(user));
+
 }

@@ -34,6 +34,7 @@ export type Restuarant = {
     configuration: RestaurantConfiguration | null
 }
 
+
 export type RestaurantFormData = Omit<Restuarant, "id" | "country"> & {
     country_id: number | null;
     country: Restuarant["country"] | null;
