@@ -160,13 +160,6 @@ export default function RestaurantCreate() {
                 return;
             }
 
-            const validationError = validateRestaurantUpdate(restaurant);
-
-            if (validationError) {
-                showToast(validationError, "error");
-                return;
-            }
-
             const payload = {
                 email: restaurant.email,
                 restaurant_name: restaurant.restaurant_name.trim(),
@@ -177,6 +170,15 @@ export default function RestaurantCreate() {
                 country_id: 1,
                 configuration: restaurant.configuration,
             };
+
+            const validationError = validateRestaurantUpdate(payload);
+
+            if (validationError) {
+                showToast(validationError, "error");
+                return;
+            }
+
+            
             
             const response = await updateRestaurantApi(payload);
             const data = await response.json();
