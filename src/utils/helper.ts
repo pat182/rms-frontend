@@ -6,6 +6,8 @@ import { Restuarant } from "../types/restaurant";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CONTACT_NUMBER_CHARACTER_REGEX = /^[+\d\s().-]$/;
 
+
+
 export const days = [
     "Monday",
     "Tuesday",

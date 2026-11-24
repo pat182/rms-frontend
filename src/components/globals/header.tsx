@@ -1,13 +1,17 @@
+
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, Menu } from "lucide-react";
-import { type SideBarProps } from "../../types/global";
+import {
+    diningSeshActionMsg,
+    type DiningSessionCreatedMessage,
+    type SideBarProps,
+    type HeaderNotification,
+} from "../../types/global";
 import { useRestaurant } from "./restaurantContext";
 import { useNavigate } from "react-router-dom";
 import { connectAdminWebSocket } from "../../utils/websocket";
-import { HeaderNotification } from "../../types/global";
 import { updateDiningSessionStatus } from "../../api/restaurantTable";
 import { useToast } from "./toastContext";
-
 
 export default function TopBar({
     sidebarOpen,
@@ -26,15 +30,14 @@ export default function TopBar({
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
+
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const notificationsRef = useRef<HTMLDivElement>(null);
-    const notificationIdRef = useRef(0);
 
-    const restaurantName =
-        restaurants.find(
-            (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
-        )?.restaurant_name ?? "Restaurant";
+    const restaurantName = restaurants.find(
+        (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
+    )?.restaurant_name ?? "Restaurant";
 
     const updateNotificationStatus = async (
         notification: HeaderNotification,
@@ -52,6 +55,7 @@ export default function TopBar({
             }
 
             const status = action === "accept" ? "verified" : "closed";
+
             window.dispatchEvent(
                 new CustomEvent("dining-session-status-updated", {
                     detail: {
@@ -60,16 +64,21 @@ export default function TopBar({
                     },
                 }),
             );
+
             setNotifications((current) =>
-                current.filter((item) => item.id !== notification.id),
+                current.filter(
+                    (item) => item.content.session_id !== notification.content.session_id,
+                ),
             );
-            showToast(`Dining session ${action === "accept" ? "accepted" : "rejected"}.`, "success");
+
+            showToast(
+                `Dining session ${action === "accept" ? "accepted" : "rejected"}.`,
+                "success",
+            );
         } catch {
             showToast(`Unable to ${action} the dining session. Please try again.`, "error");
         }
     };
-
-
 
     useEffect(() => {
         if (selectedRestaurantId == null) return;
@@ -78,45 +87,78 @@ export default function TopBar({
 
         const socket = connectAdminWebSocket(
             `admin_notification/${selectedRestaurantId}`,
-            (message) => {
+            (message: DiningSessionCreatedMessage) => {
                 if (message.event === "dining_session_created") {
-                    window.dispatchEvent(
-                        new CustomEvent("dining-session-created", {
-                            detail: message.data,
-                        }),
-                    );
+                    const session = message.data.dining_session;
+                    const action = message.data.action;
 
-                    notificationIdRef.current += 1;
+                    if (action === "created") {
+                        window.dispatchEvent(
+                            new CustomEvent("dining-session-created", {
+                                detail: message.data,
+                            }),
+                        );
+                    }
+
+                    if (action === "expired") {
+                        window.dispatchEvent(
+                            new CustomEvent("dining-session-status-updated", {
+                                detail: {
+                                    session_id: session.session_id,
+                                    status: session.status,
+                                },
+                            }),
+                        );
+
+                        setNotifications((current) =>
+                            current.filter(
+                                (item) => item.content.session_id !== session.session_id,
+                            ),
+                        );
+
+                        return;
+                    }
+
+                    if (action === "expiration_warn") {
+                        window.dispatchEvent(
+                            new CustomEvent("dining-session-expiration-warning", {
+                                detail: {
+                                    dining_session: message.data.dining_session,
+                                    action: "expiration_warn",
+                                },
+                            })
+                        );
+                    }
+
+                    const notificationId = `${session.session_id}-${action}`;
 
                     setNotifications((current) => [
                         {
-                            id: notificationIdRef.current,
-                            title: "New dining session",
-                            content: message.data,
+                            id: notificationId,
+                            title: diningSeshActionMsg[action],
+                            content: session,
+                            action,
                             receivedAt: new Date().toLocaleTimeString(),
                         },
-                        ...current,
+                        ...current.filter((item) => item.id !== notificationId),
                     ]);
                 }
 
                 if (message.event === "order_created") {
-                    
                     window.dispatchEvent(
                         new CustomEvent("order-created", {
                             detail: message.data,
                         }),
                     );
                 }
-                
+
                 if (message.event === "order_updated") {
-                    
                     window.dispatchEvent(
                         new CustomEvent("order-updated", {
                             detail: message.data,
                         }),
                     );
                 }
-
             },
         );
 
@@ -125,8 +167,6 @@ export default function TopBar({
         };
     }, [selectedRestaurantId]);
 
-
-
     useEffect(() => {
         const handleDiningSessionStatusUpdated = (event: Event) => {
             const { session_id } = (
@@ -134,32 +174,45 @@ export default function TopBar({
             ).detail;
 
             setNotifications((current) =>
-                current.filter((notification) => notification.content.session_id !== session_id),
+                current.filter(
+                    (notification) => notification.content.session_id !== session_id,
+                ),
             );
         };
 
-        window.addEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+        window.addEventListener(
+            "dining-session-status-updated",
+            handleDiningSessionStatusUpdated,
+        );
+
         return () => {
-            window.removeEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+            window.removeEventListener(
+                "dining-session-status-updated",
+                handleDiningSessionStatusUpdated,
+            );
         };
     }, []);
 
     useEffect(() => {
-
         if (!dropdownOpen && !notificationsOpen) return;
 
         const handlePointerDown = (event: PointerEvent) => {
             const target = event.target as Node;
+
             if (dropdownOpen && !dropdownRef.current?.contains(target)) {
                 setDropdownOpen(false);
             }
+
             if (notificationsOpen && !notificationsRef.current?.contains(target)) {
                 setNotificationsOpen(false);
             }
         };
 
         document.addEventListener("pointerdown", handlePointerDown);
-        return () => document.removeEventListener("pointerdown", handlePointerDown);
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+        };
     }, [dropdownOpen, notificationsOpen]);
 
     return (
@@ -185,6 +238,7 @@ export default function TopBar({
                             } else if (event.key === "ArrowDown" && !dropdownOpen) {
                                 event.preventDefault();
                                 setDropdownOpen(true);
+
                                 requestAnimationFrame(() => {
                                     dropdownRef.current
                                         ?.querySelector<HTMLButtonElement>('[role="menuitemradio"]')
@@ -197,15 +251,20 @@ export default function TopBar({
                                 const options = dropdownRef.current?.querySelectorAll<HTMLButtonElement>(
                                     '[role="menuitemradio"]',
                                 );
+
                                 if (!options?.length) return;
 
                                 event.preventDefault();
+
                                 const currentIndex = Array.from(options).indexOf(
                                     document.activeElement as HTMLButtonElement,
                                 );
+
                                 const direction = event.key === "ArrowDown" ? 1 : -1;
+
                                 const nextIndex =
                                     (currentIndex + direction + options.length) % options.length;
+
                                 options[nextIndex].focus();
                             }
                         }}
@@ -220,12 +279,16 @@ export default function TopBar({
                             className="flex max-w-[70vw] cursor-pointer items-center gap-2 bg-white px-3 py-2 text-lg font-semibold text-slate-800 transition md:max-w-md"
                         >
                             <span className="truncate">{restaurantName}</span>
+
                             <ChevronDown
                                 aria-hidden="true"
                                 size={16}
-                                className={`shrink-0 text-slate-500 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                                className={`shrink-0 text-slate-500 transition-transform ${
+                                    dropdownOpen ? "rotate-180" : ""
+                                }`}
                             />
                         </button>
+
                         {dropdownOpen && (
                             <div
                                 role="menu"
@@ -275,6 +338,7 @@ export default function TopBar({
                         {restaurantName}
                     </h1>
                 )}
+
                 <div
                     ref={notificationsRef}
                     className="relative"
@@ -291,12 +355,14 @@ export default function TopBar({
                         className="relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     >
                         <Bell size={19} strokeWidth={1.8} aria-hidden="true" />
+
                         {notifications.length > 0 && (
                             <span className="absolute -right-2 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] leading-none font-semibold text-white shadow-sm">
                                 {notifications.length > 99 ? "99+" : notifications.length}
                             </span>
                         )}
                     </button>
+
                     {notificationsOpen && (
                         <section
                             role="dialog"
@@ -307,12 +373,14 @@ export default function TopBar({
                                 <h2 className="text-sm font-semibold text-slate-800">
                                     Notifications
                                 </h2>
+
                                 {notifications.length > 0 && (
                                     <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
                                         {notifications.length}
                                     </span>
                                 )}
                             </div>
+
                             {notifications.length === 0 ? (
                                 <p className="px-4 py-6 text-center text-sm text-slate-500">
                                     No notifications yet.
@@ -320,43 +388,83 @@ export default function TopBar({
                             ) : (
                                 <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
                                     {notifications.map((notification) => (
-                                        <li key={notification.id} className="px-4 py-3">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <h3 className="text-sm font-medium text-slate-800">
-                                                    Table {notification.content.table_name}
-                                                </h3>
+                                        <li
+                                            key={notification.id}
+                                            className="px-4 py-4 transition hover:bg-slate-50"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <h3 className="text-sm font-semibold text-slate-800">
+                                                        {notification.title}
+                                                    </h3>
+
+                                                    <p className="mt-1 text-sm text-slate-600">
+                                                        Table {notification.content.table_name}
+                                                    </p>
+                                                </div>
 
                                                 <time className="shrink-0 text-xs text-slate-400">
                                                     {notification.receivedAt}
                                                 </time>
                                             </div>
 
-                                            <p className="mt-2 text-xs text-slate-600">
-                                                A new dining session has started. Veirfy the session and take necessary actions.
-                                            </p>
+                                            <div className="mt-3 flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs">
+                                                <span className="font-medium text-slate-600">
+                                                    Session #{notification.content.session_id}
+                                                </span>
 
-                                            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                                                <span>Session #{notification.content.session_id}</span>
-                                                <span className="capitalize">
+                                                <span className="rounded-full bg-white px-2 py-1 font-medium capitalize text-slate-600 ring-1 ring-slate-200">
                                                     {notification.content.status}
                                                 </span>
                                             </div>
-                                            <div className="mt-3 flex items-center gap-4 text-sm font-medium">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => void updateNotificationStatus(notification, "accept")}
-                                                    className="cursor-pointer text-green-600 transition hover:text-green-700 hover:underline focus:outline-none focus:underline"
-                                                >
-                                                    Accept
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => void updateNotificationStatus(notification, "reject")}
-                                                    className="cursor-pointer text-red-600 transition hover:text-red-700 hover:underline focus:outline-none focus:underline"
-                                                >
-                                                    Reject
-                                                </button>
-                                            </div>
+
+                                            {notification.action === "created" && (
+                                                <>
+                                                    <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                                                        A new dining session has started. Verify the session and take the necessary actions.
+                                                    </p>
+
+                                                    <div className="mt-3 flex items-center gap-4 text-sm font-medium">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                void updateNotificationStatus(notification, "accept")
+                                                            }
+                                                            className="cursor-pointer text-green-600 transition hover:text-green-700 hover:underline focus:outline-none focus:underline"
+                                                        >
+                                                            Accept
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                void updateNotificationStatus(notification, "reject")
+                                                            }
+                                                            className="cursor-pointer text-red-600 transition hover:text-red-700 hover:underline focus:outline-none focus:underline"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {notification.action === "expiration_warn" && (
+                                                <>
+                                                    <p className="mt-3 text-xs leading-relaxed text-amber-700">
+                                                        This dining session will expire in 5 minutes. Extend the session to keep it active.
+                                                    </p>
+
+                                                    <div className="mt-3 flex items-center gap-4 text-sm font-medium">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => console.log("hello")}
+                                                            className="cursor-pointer text-blue-600 transition hover:text-blue-700 hover:underline focus:outline-none focus:underline"
+                                                        >
+                                                            Extend
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>

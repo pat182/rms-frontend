@@ -1,16 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-
 import type {
     Dispatch,
     ReactNode,
     SetStateAction,
-} from 'react';
+} from "react";
+import type { DiningSession } from "./restaurant";
 
 export type SideBarProps = {
     sidebarOpen: boolean;
-    setSidebarOpen: Dispatch<
-        SetStateAction<boolean>
-    >;
+    setSidebarOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export type ToastProps = {
@@ -20,7 +18,6 @@ export type ToastProps = {
 };
 
 export type ToastType = "success" | "error";
-
 
 export type ToastItem = {
     id: number;
@@ -54,10 +51,17 @@ export type Country = {
     phone_code: string;
 };
 
-export type HeaderNotification = {
-    id: number;
-    title: string;
-    content: {
+export const diningSeshActionMsg = {
+    created: "new dining session",
+    expiration_warn: "dining session about to expire",
+    expired: "session Expired",
+};
+
+type DiningSeshAction = keyof typeof diningSeshActionMsg;
+
+export type DiningSessionNotificationData = {
+    dining_session: {
+        table_id: number;
         session_id: number;
         session_token: string;
         table_name: string;
@@ -66,6 +70,19 @@ export type HeaderNotification = {
         closed_at: string | null;
         status: "pending" | "verified" | "closed";
     };
+    action: DiningSeshAction;
+};
+
+export type DiningSessionCreatedMessage = {
+    event: string;
+    data: DiningSessionNotificationData;
+};
+
+export type HeaderNotification = {
+    id: string;
+    title: string;
+    content: DiningSessionNotificationData["dining_session"];
+    action : DiningSessionNotificationData["action"];
     receivedAt: string;
 };
 
@@ -106,4 +123,4 @@ export type InfiniteScrollOptions = {
     hasMore: boolean;
     onLoadMore: () => void;
     threshold?: number;
-}
+};

@@ -8,6 +8,7 @@ export default function DiningSessionCard({
     sessions,
     onUpdateStatus,
     updatingSessionId,
+    expiringSessionIds,
 }: DiningSessionCardProps){
     const [selectedSession, setSelectedSession] = useState<DiningSession | null>(null);
 
@@ -121,6 +122,7 @@ export default function DiningSessionCard({
                             </button>
                         )}
                         {(session.status === "verified" || session.status === "closed") && (
+                            
                             <button
                                 type="button"
                                 onClick={() => setSelectedSession(session)}
@@ -130,6 +132,18 @@ export default function DiningSessionCard({
                                 View Orders
                             </button>
                         )}
+
+                        {expiringSessionIds.includes(session.id) && session.status === "verified" && (
+                            <button
+                                type="button"
+                                onClick={() => console.log("test")}
+                                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#6495ED] px-3 py-2.5 text-sm font-semibold text-white shadow-sm shadow-[#6495ED]/25 transition hover:bg-blue-600"
+                            >
+                                <ClipboardList aria-hidden="true" size={16} />
+                                Extend Session
+                            </button>
+                        )}
+                        
                     </div>
 
                 </article>
