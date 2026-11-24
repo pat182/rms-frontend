@@ -28,11 +28,11 @@ export default function RestaurantCreate() {
     const { id } = useParams();
     const isCreating = !id;
     const navigate = useNavigate();
-
+    
     const [restaurant, setRestaurant] = useState<RestaurantFormData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
+    const [isSaving, setIsSaving] = useState(false);
     const { selectedRestaurantId } = useRestaurant();
     const { showToast } = useToast();
 
@@ -140,7 +140,7 @@ export default function RestaurantCreate() {
 
     async function handleSave(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
+        setIsSaving(true);
         if (restaurant == null) {
             showToast(
                 isCreating
@@ -192,7 +192,9 @@ export default function RestaurantCreate() {
             }
             updateRestaurantLocalStorage(data.data)
             showToast("Restaurant successfully updated", "success");
+            setIsSaving(false)
         } catch (error) {
+            setIsSaving(false)
             showToast(
                 error instanceof Error
                     ? error.message
@@ -565,10 +567,15 @@ export default function RestaurantCreate() {
 
                     <div className="flex justify-end">
                         <button
+                            disabled={isSaving}
+                            aria-busy={isSaving}
                             type="submit"
-                            className="cursor-pointer rounded-lg bg-[#6495ED] px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+                            className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-[#6495ED] px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                            {isCreating ? "Create Restaurant" : "Save Changes"}
+                            {isSaving && (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            )}
+                            {isSaving ?  "Saving..." : isCreating ? "Create Restaurant" : "Save Changes"}
                         </button>
                     </div>
                 </form>

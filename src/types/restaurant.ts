@@ -52,6 +52,8 @@ export type DiningSession = {
     restaurant_table: Pick<RestaurantTable, "table_name">;
 };
 
+
+
 export type RestaurantTable = {
     id: number;
     table_id: number;
@@ -104,4 +106,5 @@ export type DiningSessionCardProps = {
         session: DiningSession,
         status: "verified" | "closed"
     ) => void;
+    expiringSessionIds: number[];
 };

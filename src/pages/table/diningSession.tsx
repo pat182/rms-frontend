@@ -3,7 +3,7 @@ import { Armchair, Check, ChevronDown, LoaderCircle, X } from "lucide-react";
 import { getDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
 import type { DiningSession } from "../../types/restaurant.ts";
-import type { HeaderNotification } from "../../types/global.ts";
+import type { DiningSessionNotificationData, HeaderNotification } from "../../types/global.ts";
 import { useToast } from "../../components/globals/toastContext.tsx";
 import useDiningSeshDefault from "../../hooks/restaurantTable/useDiningSeshDefault.ts";
 import DiningSessionCard from "../../components/restaurantTable/diningSessionCard.tsx";
@@ -37,27 +37,29 @@ export default function DiningSession() {
         setDraftCreatedFrom,
         draftCreatedTo,
         setDraftCreatedTo,
-        createdFrom, 
+        createdFrom,
         setCreatedFrom,
-        createdTo, 
+        createdTo,
         setCreatedTo,
         applyFilters,
         retryLoadingMore,
         invalidDraftDateRange,
         loadMoreRef,
         loadingMoreRef,
-        filtersExpanded, 
+        filtersExpanded,
         setFiltersExpanded,
-        loading, 
+        loading,
         setLoading,
-        error, 
+        error,
         setError,
-        updatingSessionId, 
+        updatingSessionId,
         setUpdatingSessionId
     } = useDiningSeshDefault()
-    
+
+    const [expiringSessionIds, setExpiringSessionIds] = useState<number[]>([]);
+
     const { showToast } = useToast();
-    
+
 
     const clearFilters = () => {
         loadingMoreRef.current = false;
@@ -86,12 +88,12 @@ export default function DiningSession() {
                 currentSessions.map((currentSession) =>
                     currentSession.id === session.id
                         ? {
-                              ...currentSession,
-                              status,
-                              ...(status === "closed"
-                                  ? { is_active: false, closed_at: new Date().toISOString() }
-                                  : {}),
-                          }
+                            ...currentSession,
+                            status,
+                            ...(status === "closed"
+                                ? { is_active: false, closed_at: new Date().toISOString() }
+                                : {}),
+                        }
                         : currentSession
                 )
             );
@@ -101,12 +103,12 @@ export default function DiningSession() {
                 }),
             );
             showToast(
-            status === "verified"
-                ? "Dining session accepted."
-                : session.status === "pending"
-                  ? "Dining session rejected."
-                  : "Dining session closed.",
-            "success"
+                status === "verified"
+                    ? "Dining session accepted."
+                    : session.status === "pending"
+                        ? "Dining session rejected."
+                        : "Dining session closed.",
+                "success"
             );
         } catch (statusError) {
             showToast(
@@ -171,7 +173,7 @@ export default function DiningSession() {
                     setTotalItems(serverTotal);
                     setHasMore(
                         pageSessions.length > 0 &&
-                            page * DINING_SESSION_PAGE_SIZE < serverTotal
+                        page * DINING_SESSION_PAGE_SIZE < serverTotal
                     );
                     setSessions((currentSessions) => {
                         if (isFirstPage) return pageSessions;
@@ -206,7 +208,7 @@ export default function DiningSession() {
         return () => {
             cancelled = true;
         };
-    }, [selectedRestaurantId,activeFilter, createdFrom, createdTo, page, loadMoreRetry]);
+    }, [selectedRestaurantId, activeFilter, createdFrom, createdTo, page, loadMoreRetry]);
 
     useEffect(() => {
         const sentinel = loadMoreRef.current;
@@ -227,28 +229,38 @@ export default function DiningSession() {
 
     useEffect(() => {
         const handleDiningSessionCreated = (event: Event) => {
-            const data = (event as CustomEvent<HeaderNotification["content"]>).detail;
+
+            const data = (event as CustomEvent<{
+                dining_session: DiningSessionNotificationData["dining_session"];
+                action: string;
+            }>).detail;
+            
             if (
-                !data ||
-                typeof data.session_id !== "number" ||
-                typeof data.session_token !== "string" ||
-                typeof data.table_name !== "string" ||
-                typeof data.is_active !== "boolean" ||
-                typeof data.started_at !== "string" ||
-                (data.closed_at !== null && typeof data.closed_at !== "string") ||
-                !["pending", "verified", "closed"].includes(data.status)
+                data.action !== "created" ||
+                !data?.dining_session ||
+                typeof data.dining_session.session_id !== "number" ||
+                typeof data.dining_session.session_token !== "string" ||
+                typeof data.dining_session.table_name !== "string" ||
+                typeof data.dining_session.is_active !== "boolean" ||
+                typeof data.dining_session.started_at !== "string" ||
+                (
+                    data.dining_session.closed_at !== null &&
+                    typeof data.dining_session.closed_at !== "string"
+                ) ||
+                !["pending", "verified", "closed"].includes(data.dining_session.status)
             ) {
+                console.log("Invalid dining session event data:", data);
                 return;
             }
-
+            
             const session: DiningSession = {
-                id: data.session_id,
-                session_token: data.session_token,
-                is_active: data.is_active,
-                status: data.status,
-                started_at: data.started_at,
-                closed_at: data.closed_at,
-                restaurant_table: { table_name: data.table_name },
+                id: data.dining_session.session_id,
+                session_token: data.dining_session.session_token,
+                is_active: data.dining_session.is_active,
+                status: data.dining_session.status,
+                started_at: data.dining_session.started_at,
+                closed_at: data.dining_session.closed_at,
+                restaurant_table: { table_name: data.dining_session.table_name },
             };
 
             const matchesStatus =
@@ -272,14 +284,31 @@ export default function DiningSession() {
             ]);
         };
 
+        const handleDiningSessionExpirationWarning = (event: Event) => {
+            const data = (
+                event as CustomEvent<DiningSessionNotificationData>
+            ).detail;
+
+            const sessionId = data?.dining_session?.session_id;
+
+            if (data?.action !== "expiration_warn" || typeof sessionId !== "number") {
+                return;
+            }
+
+            setExpiringSessionIds((current) =>
+                current.includes(sessionId) ? current : [...current, sessionId]
+            );
+        };
+
         const handleDiningSessionStatusUpdated = (event: Event) => {
+            
             const { session_id, status } = (
                 event as CustomEvent<{
                     session_id: number;
                     status: DiningSession["status"];
                 }>
             ).detail;
-
+            // console.log(status)
             if (typeof session_id !== "number" || !["pending", "verified", "closed"].includes(status)) {
                 return;
             }
@@ -306,12 +335,15 @@ export default function DiningSession() {
                 }),
             );
         };
-
+        
         window.addEventListener("dining-session-created", handleDiningSessionCreated);
         window.addEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+        window.addEventListener("dining-session-expiration-warning",handleDiningSessionExpirationWarning);
+        
         return () => {
             window.removeEventListener("dining-session-created", handleDiningSessionCreated);
             window.removeEventListener("dining-session-status-updated", handleDiningSessionStatusUpdated);
+            window.removeEventListener("dining-session-expiration-warning",handleDiningSessionExpirationWarning);
         };
     }, [activeFilter, createdFrom, createdTo]);
 
@@ -342,32 +374,6 @@ export default function DiningSession() {
                             Monitor table activity, manage guest sessions, and review incoming session requests.
                         </p>
                     </div>
-
-                    {/* <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                        {[
-                            { label: "Total", value: totalItems },
-                            {
-                                label: "Active",
-                                value: sessions.filter((session) => session.is_active).length,
-                            },
-                            {
-                                label: "Pending",
-                                value: sessions.filter((session) => session.status === "pending").length,
-                            },
-                        ].map((stat) => (
-                            <div
-                                key={stat.label}
-                                className="min-w-20 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-3 sm:min-w-24 sm:px-4"
-                            >
-                                <p className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-                                    {stat.value}
-                                </p>
-                                <p className="mt-0.5 text-xs font-medium text-slate-500">
-                                    {stat.label}
-                                </p>
-                            </div>
-                        ))}
-                    </div> */}
                 </div>
             </section>
 
@@ -397,18 +403,16 @@ export default function DiningSession() {
                                     type="button"
                                     aria-pressed={draftFilter === filter.value}
                                     onClick={() => setDraftFilter(filter.value)}
-                                    className={`inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
-                                        draftFilter === filter.value
+                                    className={`inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${draftFilter === filter.value
                                             ? "bg-[#6495ED] text-white shadow-sm shadow-[#6495ED]/25"
                                             : "bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-blue-50 hover:text-[#6495ED]"
-                                    }`}
+                                        }`}
                                 >
                                     {filter.label}
-                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${
-                                        draftFilter === filter.value
+                                    <span className={`rounded-full px-1.5 py-0.5 text-xs ${draftFilter === filter.value
                                             ? "bg-white/15 text-white"
                                             : "bg-white text-slate-500"
-                                    }`}>
+                                        }`}>
                                         {filter.count}
                                     </span>
                                 </button>
@@ -506,6 +510,7 @@ export default function DiningSession() {
                         sessions={sessions}
                         onUpdateStatus={handleSessionStatus}
                         updatingSessionId={updatingSessionId}
+                        expiringSessionIds={expiringSessionIds}
                     />
                 )}
             </div>
