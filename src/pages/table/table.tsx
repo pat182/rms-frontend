@@ -142,7 +142,7 @@ export default function Table() {
                                 <th className="border-b border-slate-200 px-6 py-4">Capacity</th>
                                 <th className="border-b border-slate-200 px-6 py-4">Status</th>
                                 <th className="border-b border-slate-200 px-6 py-4">Dining Session</th>
-                                <th className="border-b border-slate-200 px-6 py-4">Sessions</th>
+                                {/* <th className="border-b border-slate-200 px-6 py-4">Sessions</th> */}
                                 <th className="border-b border-slate-200 px-6 py-4 text-right">
                                     Actions
                                 </th>
@@ -208,9 +208,9 @@ export default function Table() {
                                                     {activeSession ? "In use" : "Available"}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            {/* <td className="px-6 py-4">
                                                 {table.dining_sessions.length}
-                                            </td>
+                                            </td> */}
                                             <td className="px-6 py-4 text-right">
                                                 <RestaurantTableActions
                                                     table={table}
