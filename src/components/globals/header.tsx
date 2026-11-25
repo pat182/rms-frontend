@@ -10,8 +10,10 @@ import {
 import { useRestaurant } from "./restaurantContext";
 import { useNavigate } from "react-router-dom";
 import { connectAdminWebSocket } from "../../utils/websocket";
-import { updateDiningSessionStatus } from "../../api/restaurantTable";
+import { extendDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable";
 import { useToast } from "./toastContext";
+import { DiningSession } from "../../types/restaurant";
+import { getApiErrorMessage } from "../../api/utils";
 
 export default function TopBar({
     sidebarOpen,
@@ -39,14 +41,50 @@ export default function TopBar({
         (restaurant: { id: number }) => restaurant.id === selectedRestaurantId,
     )?.restaurant_name ?? "Restaurant";
 
+    const handleSessionExtend = async (
+        session : HeaderNotification,
+    ) => {
+        
+        try{
+            const response = await extendDiningSession(session.content.session_token);
+
+            if (!response.ok) {
+                showToast(`Unable to extend dining session`, "error");
+                return;
+            }
+
+            window.dispatchEvent(
+                new CustomEvent("dining-session-status-updated", {
+                    detail: { 
+                        session_id: session.content.session_id,
+                        status : session.content.status
+                    },
+                }),
+            );
+            setNotifications((current) =>
+                current.filter(
+                    (item) => item.content.session_id !==session.content.session_id,
+                ),
+            );
+            showToast("Dining Session Extended","success");
+        }catch (statusError){
+            showToast(
+                statusError instanceof Error ? statusError.message : "Unable to update the dining session.",
+                "error"
+            );
+        }
+    }
+
     const updateNotificationStatus = async (
         notification: HeaderNotification,
         action: "accept" | "reject",
     ) => {
         try {
+            const status = action === "accept" ? "verified" : "closed";
+
             const response = await updateDiningSessionStatus(
                 notification.content.session_token,
-                action === "accept" ? "verified" : "closed",
+                status,
             );
 
             if (!response.ok) {
@@ -54,8 +92,22 @@ export default function TopBar({
                 return;
             }
 
-            const status = action === "accept" ? "verified" : "closed";
+            // First, update the notification content with the new status.
+            setNotifications((current) =>
+                current.map((item) =>
+                    item.content.session_id === notification.content.session_id
+                        ? {
+                            ...item,
+                            content: {
+                                ...item.content,
+                                status,
+                            },
+                        }
+                        : item,
+                ),
+            );
 
+            // Notify other components about the status change.
             window.dispatchEvent(
                 new CustomEvent("dining-session-status-updated", {
                     detail: {
@@ -65,6 +117,7 @@ export default function TopBar({
                 }),
             );
 
+            // Remove the notification after updating its status.
             setNotifications((current) =>
                 current.filter(
                     (item) => item.content.session_id !== notification.content.session_id,
@@ -120,6 +173,7 @@ export default function TopBar({
                     }
 
                     if (action === "expiration_warn") {
+                        
                         window.dispatchEvent(
                             new CustomEvent("dining-session-expiration-warning", {
                                 detail: {
@@ -172,7 +226,6 @@ export default function TopBar({
             const { session_id } = (
                 event as CustomEvent<{ session_id: number }>
             ).detail;
-
             setNotifications((current) =>
                 current.filter(
                     (notification) => notification.content.session_id !== session_id,
@@ -457,7 +510,7 @@ export default function TopBar({
                                                     <div className="mt-3 flex items-center gap-4 text-sm font-medium">
                                                         <button
                                                             type="button"
-                                                            onClick={() => console.log("hello")}
+                                                            onClick={() =>  void handleSessionExtend(notification)}
                                                             className="cursor-pointer text-blue-600 transition hover:text-blue-700 hover:underline focus:outline-none focus:underline"
                                                         >
                                                             Extend

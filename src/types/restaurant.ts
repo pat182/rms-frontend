@@ -107,4 +107,7 @@ export type DiningSessionCardProps = {
         status: "verified" | "closed"
     ) => void;
     expiringSessionIds: number[];
+    onExtendSession : (
+        session: DiningSession,
+    ) => void;
 };

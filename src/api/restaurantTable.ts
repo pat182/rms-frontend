@@ -60,6 +60,24 @@ export async function updateDiningSessionStatus(
     );
 }
 
+export async function extendDiningSession(
+    sessionToken: string,
+): Promise<Response> {
+    return apiFetch(
+        `${API_URL}/dining-session/${encodeURIComponent(sessionToken)}/extend`,
+        {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': localStorage.getItem('csrf_token') ?? '',
+                'X-RESTAURANT-ID': localStorage.getItem('selectedRestaurantId') ?? '',
+            }
+        },
+    );
+}
+
+
 export async function getRestaurantTables(
     {
         page = 1,
