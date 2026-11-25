@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Armchair, Check, ChevronDown, LoaderCircle, X } from "lucide-react";
-import { getDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable.ts";
+import { extendDiningSession, getDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable.ts";
 import { getApiErrorMessage } from "../../api/utils.ts";
 import type { DiningSession } from "../../types/restaurant.ts";
 import type { DiningSessionNotificationData, HeaderNotification } from "../../types/global.ts";
@@ -58,6 +58,12 @@ export default function DiningSession() {
 
     const [expiringSessionIds, setExpiringSessionIds] = useState<number[]>([]);
 
+    // Remember local status changes so an older in-flight API response
+    // cannot overwrite a newer status received through an event.
+    const sessionStatusUpdatesRef = useRef(
+        new Map<number, { status: DiningSession["status"]; updatedAt: number }>()
+    );
+
     const { showToast } = useToast();
 
 
@@ -77,13 +83,13 @@ export default function DiningSession() {
         status: "verified" | "closed"
     ) => {
         setUpdatingSessionId(session.id);
-
+       
         try {
             const response = await updateDiningSessionStatus(session.session_token, status);
             if (!response.ok) {
                 throw new Error(await getApiErrorMessage(response));
             }
-
+            
             setSessions((currentSessions) =>
                 currentSessions.map((currentSession) =>
                     currentSession.id === session.id
@@ -122,6 +128,39 @@ export default function DiningSession() {
         }
     };
 
+    const handleSessionExtend = async (session: DiningSession) => {
+        setUpdatingSessionId(session.id);
+
+        try {
+            const response = await extendDiningSession(session.session_token);
+
+            if (!response.ok) {
+                throw new Error(await getApiErrorMessage(response));
+            }
+
+            setExpiringSessionIds((prev) =>
+                prev.filter((id) => id !== session.id)
+            );
+
+            // Extending a session does not change its status, so do not
+            // dispatch the dining-session-status-updated event here.
+            window.dispatchEvent(
+                new CustomEvent("dining-session-status-updated", {
+                    detail: { session_id: session.id, status: session.status },
+                }),
+            );
+            showToast("Dining Session Extended", "success");
+        } catch (statusError) {
+            showToast(
+                statusError instanceof Error
+                    ? statusError.message
+                    : "Unable to update the dining session.",
+                "error"
+            );
+        } finally {
+            setUpdatingSessionId(null);
+        }
+    }
     
 
     useEffect(() => {
@@ -129,6 +168,11 @@ export default function DiningSession() {
 
         async function fetchSessions() {
             const isFirstPage = page === 1;
+
+            // Capture the request start time. If a status event arrives while
+            // this request is in flight, its response must not overwrite that update.
+            const requestStartedAt = Date.now();
+
             try {
                 if (isFirstPage) {
                     setLoading(true);
@@ -176,7 +220,40 @@ export default function DiningSession() {
                         page * DINING_SESSION_PAGE_SIZE < serverTotal
                     );
                     setSessions((currentSessions) => {
-                        if (isFirstPage) return pageSessions;
+                        if (isFirstPage) {
+                            const refreshedSessions = pageSessions.map((apiSession) => {
+                                const statusUpdate = sessionStatusUpdatesRef.current.get(apiSession.id);
+
+                                // Preserve only updates newer than this request.
+                                // Requests started after the update can use the API response normally.
+                                if (
+                                    !statusUpdate ||
+                                    statusUpdate.updatedAt < requestStartedAt
+                                ) {
+                                    return apiSession;
+                                }
+
+                                return {
+                                    ...apiSession,
+                                    status: statusUpdate.status,
+                                    ...(statusUpdate.status === "closed"
+                                        ? {
+                                            is_active: false,
+                                            closed_at: new Date(statusUpdate.updatedAt).toISOString(),
+                                        }
+                                        : {}),
+                                };
+                            });
+
+                            // Re-apply the selected status filter after merging local updates.
+                            // For example, an accepted session should not remain in the Pending filter.
+                            return refreshedSessions.filter((session) =>
+                                activeFilter === "all" ||
+                                (activeFilter === "active"
+                                    ? session.is_active
+                                    : session.status === activeFilter)
+                            );
+                        }
 
                         const existingIds = new Set(currentSessions.map((session) => session.id));
                         return [
@@ -301,18 +378,34 @@ export default function DiningSession() {
         };
 
         const handleDiningSessionStatusUpdated = (event: Event) => {
-            
             const { session_id, status } = (
                 event as CustomEvent<{
                     session_id: number;
                     status: DiningSession["status"];
                 }>
             ).detail;
-            // console.log(status)
-            if (typeof session_id !== "number" || !["pending", "verified", "closed"].includes(status)) {
+
+            // console.log("STATUS EVENT RECEIVED:", { session_id, status });
+
+            if (
+                typeof session_id !== "number" ||
+                !["pending", "verified", "closed"].includes(status)
+            ) {
+                console.log("Invalid dining session status event:", { session_id, status });
                 return;
             }
 
+            // Record the event so an older fetch response cannot restore stale status.
+            sessionStatusUpdatesRef.current.set(session_id, {
+                status,
+                updatedAt: Date.now(),
+            });
+
+            if (status === "verified" || status === "closed") {
+                setExpiringSessionIds((current) =>
+                    current.filter((id) => id !== session_id)
+                );
+            }
             const closedAt = status === "closed" ? new Date().toISOString() : null;
             setSessions((currentSessions) =>
                 currentSessions.flatMap((session) => {
@@ -511,6 +604,7 @@ export default function DiningSession() {
                         onUpdateStatus={handleSessionStatus}
                         updatingSessionId={updatingSessionId}
                         expiringSessionIds={expiringSessionIds}
+                        onExtendSession={handleSessionExtend}
                     />
                 )}
             </div>
