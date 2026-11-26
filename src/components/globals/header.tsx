@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { connectAdminWebSocket } from "../../utils/websocket";
 import { extendDiningSession, updateDiningSessionStatus } from "../../api/restaurantTable";
 import { useToast } from "./toastContext";
-import { DiningSession } from "../../types/restaurant";
 import { getApiErrorMessage } from "../../api/utils";
 
 export default function TopBar({
@@ -27,12 +26,15 @@ export default function TopBar({
     const {
         selectedRestaurantId,
         setSelectedRestaurantId,
+        setDropdownOpen,
+        dropdownOpen,
+        notificationsOpen,
+        setNotificationsOpen
     } = useRestaurant();
 
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    
+    // const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState<HeaderNotification[]>([]);
-
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const notificationsRef = useRef<HTMLDivElement>(null);
@@ -92,21 +94,6 @@ export default function TopBar({
                 return;
             }
 
-            // First, update the notification content with the new status.
-            setNotifications((current) =>
-                current.map((item) =>
-                    item.content.session_id === notification.content.session_id
-                        ? {
-                            ...item,
-                            content: {
-                                ...item.content,
-                                status,
-                            },
-                        }
-                        : item,
-                ),
-            );
-
             // Notify other components about the status change.
             window.dispatchEvent(
                 new CustomEvent("dining-session-status-updated", {
@@ -132,6 +119,31 @@ export default function TopBar({
             showToast(`Unable to ${action} the dining session. Please try again.`, "error");
         }
     };
+
+    useEffect(() => {
+        const handleDiningSessionStatusUpdated = (event: Event) => {
+            const { session_id } = (
+                event as CustomEvent<{ session_id: number }>
+            ).detail;
+            setNotifications((current) =>
+                current.filter(
+                    (notification) => notification.content.session_id !== session_id,
+                ),
+            );
+        };
+
+        window.addEventListener(
+            "dining-session-status-updated",
+            handleDiningSessionStatusUpdated,
+        );
+
+        return () => {
+            window.removeEventListener(
+                "dining-session-status-updated",
+                handleDiningSessionStatusUpdated,
+            );
+        };
+    }, []);
 
     useEffect(() => {
         if (selectedRestaurantId == null) return;
@@ -220,31 +232,6 @@ export default function TopBar({
             socket.close();
         };
     }, [selectedRestaurantId]);
-
-    useEffect(() => {
-        const handleDiningSessionStatusUpdated = (event: Event) => {
-            const { session_id } = (
-                event as CustomEvent<{ session_id: number }>
-            ).detail;
-            setNotifications((current) =>
-                current.filter(
-                    (notification) => notification.content.session_id !== session_id,
-                ),
-            );
-        };
-
-        window.addEventListener(
-            "dining-session-status-updated",
-            handleDiningSessionStatusUpdated,
-        );
-
-        return () => {
-            window.removeEventListener(
-                "dining-session-status-updated",
-                handleDiningSessionStatusUpdated,
-            );
-        };
-    }, []);
 
     useEffect(() => {
         if (!dropdownOpen && !notificationsOpen) return;

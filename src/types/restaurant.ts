@@ -1,8 +1,13 @@
+import { Dispatch, SetStateAction } from "react";
 import { Country, GetQueryParams } from "./global.ts";
 
 export type RestaurantContextType = {
     selectedRestaurantId: number | null;
     setSelectedRestaurantId: (id: number) => void;
+    dropdownOpen : boolean;
+    setDropdownOpen: Dispatch<SetStateAction<boolean>>;
+    notificationsOpen : boolean;
+    setNotificationsOpen : Dispatch<SetStateAction<boolean>>;
 };
 export type RestaurantOperatingHours = {
     id: number

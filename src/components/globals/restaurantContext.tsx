@@ -19,18 +19,17 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         : [];
 
     
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [selectedRestaurantId, setSelectedRestaurantIdState] = useState<number | null>(() => {
+        const savedId = Number(localStorage.getItem("selectedRestaurantId"));
 
-    const [selectedRestaurantId, setSelectedRestaurantIdState] =
-    
-        useState<number | null>(() => {
-            const savedId = Number(localStorage.getItem("selectedRestaurantId"));
-
-            return restaurants.some(
-                (restaurant: { id: number }) => restaurant.id === savedId
-            )
-                ? savedId
-                : restaurants[0]?.id ?? null;
-        });
+        return restaurants.some(
+            (restaurant: { id: number }) => restaurant.id === savedId
+        )
+            ? savedId
+        : restaurants[0]?.id ?? null;
+    });
 
     const setSelectedRestaurantId = (id: number) => {
         setSelectedRestaurantIdState(id);
@@ -42,6 +41,11 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
             value={{
                 selectedRestaurantId,
                 setSelectedRestaurantId,
+                setDropdownOpen,
+                dropdownOpen,
+                notificationsOpen,
+                setNotificationsOpen
+
             }}
         >
             {children}

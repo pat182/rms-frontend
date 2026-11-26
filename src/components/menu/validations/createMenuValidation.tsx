@@ -9,7 +9,7 @@ export function validateCompleteMenu(
     if (!menuName.trim()) {
         return "Menu name is required.";
     }
-
+    
     const validateItems = (
         items: MenuItem[],
         location: string
